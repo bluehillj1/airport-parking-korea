@@ -1,0 +1,21 @@
+{
+  "response": {
+    "header": {"resultCode": "00", "resultMsg": "NORMAL SERVICE."},
+    "body": {
+      "numOfRows": 100,
+      "pageNo": 1,
+      "totalCount": 7,
+      "items": {
+        "item": [
+          {"parkingGetdate": "2026-09-15", "parkingGettime": "10:13:03", "parkingFullSpace": "2279", "aprKor": "김포국제공항", "aprEng": "GIMPO INTERNATIONAL AIRPORT", "parkingAirportCodeName": "국내선 제1주차장", "parkingIincnt": "1833", "parkingIoutcnt": "1179", "parkingIstay": "2279"},
+          {"parkingGetdate": "2026-09-15", "parkingGettime": "10:13:03", "parkingFullSpace": "1733", "aprKor": "김포국제공항", "aprEng": "GIMPO INTERNATIONAL AIRPORT", "parkingAirportCodeName": "국내선 제2주차장", "parkingIincnt": "1024", "parkingIoutcnt": "623", "parkingIstay": "1629"},
+          {"parkingGetdate": "2026-09-15", "parkingGettime": "10:13:04", "parkingFullSpace": "567", "aprKor": "김포국제공항", "aprEng": "GIMPO INTERNATIONAL AIRPORT", "parkingAirportCodeName": "국제선 주차빌딩", "parkingIincnt": "681", "parkingIoutcnt": "556", "parkingIstay": "406"},
+          {"parkingGetdate": "2026-09-15", "parkingGettime": "10:13:03", "parkingFullSpace": "737", "aprKor": "김포국제공항", "aprEng": "GIMPO INTERNATIONAL AIRPORT", "parkingAirportCodeName": "화물청사", "parkingIincnt": "2859", "parkingIoutcnt": "2481", "parkingIstay": "647"},
+          {"parkingGetdate": "2026-09-15", "parkingGettime": "10:13:03", "parkingFullSpace": "2453", "aprKor": "김해국제공항", "aprEng": "GIMHAE INTERNATIONAL AIRPORT", "parkingAirportCodeName": "P2 여객주차장", "parkingIincnt": "1174", "parkingIoutcnt": "1006", "parkingIstay": "2443"},
+          {"parkingGetdate": "2026-09-15", "parkingGettime": "10:13:03", "parkingFullSpace": "1763", "aprKor": "제주국제공항", "aprEng": "JEJU INTERNATIONAL AIRPORT", "parkingAirportCodeName": "P1주차장", "parkingIincnt": "4023", "parkingIoutcnt": "3335", "parkingIstay": "1695"},
+          {"parkingGetdate": "2026-09-15", "parkingGettime": "10:13:03", "parkingFullSpace": "0", "aprKor": "청주국제공항", "aprEng": "CHEONGJU INTERNATIONAL AIRPORT", "parkingAirportCodeName": "여객 제3주차장", "parkingIincnt": "0", "parkingIoutcnt": "0", "parkingIstay": "0"}
+        ]
+      }
+    }
+  }
+}

@@ -11,6 +11,7 @@ __pycache__/
 *.py[cod]
 .venv/
 venv/
+.pytest_cache/
 
 # 에디터·OS
 .vscode/

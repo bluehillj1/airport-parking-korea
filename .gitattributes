@@ -1,0 +1,8 @@
+# 개발은 Windows, 실행은 GitHub Actions의 리눅스 러너다.
+# 워크플로 YAML의 `run: |` 블록이 CRLF로 커밋되면 리눅스 bash가
+# $'\r': command not found 로 죽는다. 저장소에는 항상 LF로 저장한다.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.docx binary
