@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
 from collector.api import LotReading, representative_ts
@@ -20,7 +21,15 @@ def run_file(root: Path, src_ts: str, run_id: str) -> Path:
 
     날짜는 반드시 원천 타임스탬프(KST)에서 가져온다. Actions 러너는 UTC라
     러너 시계를 쓰면 매일 09:00 KST에 날짜가 하루 어긋난다.
+
+    src_ts는 반드시 "YYYY-MM-DD HH:MM:SS" 형식(공백 포함)이어야 한다.
+    공백이 없으면 날짜 추출이 실패하고 스냅샷이 영구적으로 소실된다.
     """
+    if " " not in src_ts:
+        raise ValueError(
+            f"src_ts must contain a space separating date and time "
+            f"(e.g. '2026-09-15 10:13:03'), got: {src_ts!r}"
+        )
     day = src_ts.split(" ")[0]
     return Path(root) / day / f"{run_id}.jsonl"
 
@@ -33,8 +42,16 @@ def append_snapshot(path: Path, readings: list[LotReading]) -> bool:
 
     if path.exists():
         for line in path.read_text(encoding="utf-8").splitlines():
-            if line.strip() and json.loads(line)["src_ts"] == src_ts:
-                return False
+            if not line.strip():
+                continue
+            try:
+                if json.loads(line)["src_ts"] == src_ts:
+                    return False
+            except json.JSONDecodeError:
+                print(
+                    f"[store] WARNING: skipping truncated/corrupt line in {path}",
+                    file=sys.stderr,
+                )
 
     path.parent.mkdir(parents=True, exist_ok=True)
     record = {
@@ -60,7 +77,20 @@ def load_day(root: Path, day: str) -> dict[str, list[LotReading]]:
         for line in path.read_text(encoding="utf-8").splitlines():
             if not line.strip():
                 continue
-            record = json.loads(line)
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError:
+                print(
+                    f"[store] WARNING: skipping truncated/corrupt line in {path}",
+                    file=sys.stderr,
+                )
+                continue
+            for row in record["rows"]:
+                if len(row) != 6:
+                    raise ValueError(
+                        f"row width mismatch in {path}: expected 6 fields, "
+                        f"got {len(row)} — schema may have changed"
+                    )
             snapshots[record["src_ts"]] = [
                 LotReading(airport_kor=row[0], lot=row[1], total=row[2],
                            stay=row[3], cum_in=row[4], cum_out=row[5],
