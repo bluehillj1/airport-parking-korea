@@ -41,6 +41,13 @@ function showLogin(message) {
   document.getElementById('password').focus();
 }
 
+// 비밀번호 칸은 무엇이 들어 있는지 아무도 볼 수 없다. 한/영 상태나 자동완성으로
+// 엉뚱한 값이 들어가 있어도 점 개수만 보이니 원인을 찾을 길이 없다.
+document.getElementById('reveal').addEventListener('change', (event) => {
+  document.getElementById('password').type =
+    event.target.checked ? 'text' : 'password';
+});
+
 // 전부 "암호가 틀렸다"로 뭉뚱그리면 설정 실수를 영원히 못 찾는다. 틀린 암호와
 // 설정 누락과 미배포는 대응이 서로 다르므로 구분해서 말한다.
 // 사용자 입력에 대해서만 모호하게 답하면 된다 — 서버는 여전히 401에 이유를 싣지 않는다.
