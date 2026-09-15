@@ -1,0 +1,32 @@
+:root { --bg:#fff; --fg:#111; --muted:#666; --line:#e3e3e3; --warn:#c2410c; }
+@media (prefers-color-scheme: dark) {
+  :root { --bg:#111; --fg:#f2f2f2; --muted:#999; --line:#2c2c2c; --warn:#fb923c; }
+}
+* { box-sizing: border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font-family: system-ui, -apple-system, "Malgun Gothic", sans-serif;
+  padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+}
+header { padding:12px 16px 8px; border-bottom:1px solid var(--line); }
+#airports { display:flex; gap:8px; }
+#airports button {
+  flex:1; padding:10px; font-size:15px; border:1px solid var(--line);
+  border-radius:8px; background:transparent; color:var(--fg);
+}
+#airports button[aria-pressed="true"] { background:var(--fg); color:var(--bg); }
+#freshness { margin:8px 0 0; font-size:13px; color:var(--muted); }
+#freshness.stale { color:var(--warn); font-weight:600; }
+
+.terminal { margin:16px 16px 4px; font-size:13px; color:var(--muted); }
+.lot { padding:14px 16px; border-bottom:1px solid var(--line); }
+.lot-head { display:flex; justify-content:space-between; align-items:baseline; }
+.lot-name { font-size:16px; }
+.grade { font-size:13px; padding:2px 8px; border-radius:99px; border:1px solid var(--line); }
+.grade.만차 { background:#dc2626; color:#fff; border-color:#dc2626; }
+.grade.혼잡 { background:#f59e0b; color:#111; border-color:#f59e0b; }
+.free { font-size:28px; font-weight:700; margin:6px 0 2px; }
+.free small { font-size:14px; font-weight:400; color:var(--muted); margin-left:6px; }
+.meta { font-size:13px; color:var(--muted); }
+.spark { font-family:ui-monospace, monospace; letter-spacing:-1px; }
+.empty { padding:32px 16px; color:var(--muted); text-align:center; }
