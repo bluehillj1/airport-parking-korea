@@ -28,8 +28,14 @@ class handler(BaseHTTPRequestHandler):
     def do_POST(self):
         secret = os.environ.get("SESSION_SECRET", "")
         stored = os.environ.get("APP_PASSWORD_HASH", "")
-        if not secret or not stored:
-            print("SESSION_SECRET or APP_PASSWORD_HASH is not set", file=sys.stderr)
+        missing = [name for name, value in
+                   (("SESSION_SECRET", secret), ("APP_PASSWORD_HASH", stored))
+                   if not value]
+        if missing:
+            # 어느 변수가 비었는지는 로그에만 적는다. 인증 전 응답에 설정 상태를
+            # 실으면 밖에서 우리 구성을 들여다볼 수 있게 된다.
+            print(f"missing env: {', '.join(missing)} "
+                  f"(seen {len(os.environ)} vars)", file=sys.stderr)
             self._json(500, {"error": "server misconfigured"})
             return
 
