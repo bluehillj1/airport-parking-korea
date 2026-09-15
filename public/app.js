@@ -80,8 +80,10 @@ document.getElementById('login').addEventListener('submit', async (event) => {
 
 // ---------------------------------------------------------------- 데이터
 
+// 500은 환경변수 누락일 수도, lot_access.json 이 번들에 없을 수도 있다. 하나로
+// 단정하면 엉뚱한 곳을 뒤지게 되므로 원인을 적어둔 곳을 가리킨다.
 function dataError(status) {
-  if (status === 500) return '서버 환경변수가 설정되지 않았습니다';
+  if (status === 500) return '서버 설정 오류입니다 (Vercel 로그 확인)';
   if (status === 502) return '공항 API가 응답하지 않습니다';
   if (status === 404) return 'API가 배포되지 않았습니다';
   return `실시간 정보를 가져오지 못했습니다 (오류 ${status})`;
