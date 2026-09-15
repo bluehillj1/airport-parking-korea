@@ -41,6 +41,17 @@ function showLogin(message) {
   document.getElementById('password').focus();
 }
 
+// 전부 "암호가 틀렸다"로 뭉뚱그리면 설정 실수를 영원히 못 찾는다. 틀린 암호와
+// 설정 누락과 미배포는 대응이 서로 다르므로 구분해서 말한다.
+// 사용자 입력에 대해서만 모호하게 답하면 된다 — 서버는 여전히 401에 이유를 싣지 않는다.
+function loginError(status) {
+  if (status === 401) return '암호가 맞지 않습니다.';
+  if (status === 500) return '서버 환경변수가 설정되지 않았습니다. (Vercel 설정 확인)';
+  if (status === 404) return 'API가 배포되지 않았습니다. (함수 빌드 확인)';
+  if (status === 405) return '요청 방식 오류입니다.';
+  return `로그인에 실패했습니다. (오류 ${status})`;
+}
+
 document.getElementById('login').addEventListener('submit', async (event) => {
   event.preventDefault();
   const input = document.getElementById('password');
@@ -55,7 +66,7 @@ document.getElementById('login').addEventListener('submit', async (event) => {
     // 암호는 어디에도 남기지 않는다. 세션은 서버가 준 HttpOnly 쿠키에만 있다.
     input.value = '';
     if (!res.ok) {
-      msg.textContent = '암호가 맞지 않습니다.';
+      msg.textContent = loginError(res.status);
       return;
     }
     msg.textContent = '';
@@ -69,10 +80,17 @@ document.getElementById('login').addEventListener('submit', async (event) => {
 
 // ---------------------------------------------------------------- 데이터
 
+function dataError(status) {
+  if (status === 500) return '서버 환경변수가 설정되지 않았습니다';
+  if (status === 502) return '공항 API가 응답하지 않습니다';
+  if (status === 404) return 'API가 배포되지 않았습니다';
+  return `실시간 정보를 가져오지 못했습니다 (오류 ${status})`;
+}
+
 async function loadData() {
   const res = await fetch('/api/parking', { cache: 'no-store' });
   if (res.status === 401) return { unauthorized: true };
-  if (!res.ok) throw new Error(`api ${res.status}`);
+  if (!res.ok) return { failed: dataError(res.status) };
   return { body: await res.json() };
 }
 
@@ -331,6 +349,10 @@ async function refresh() {
     showLogin('다시 로그인해 주세요.');
     return;
   }
+  if (result.failed) {
+    renderFreshness(result.failed);
+    return;
+  }
   data = result.body;
   recordHistory(data);
   renderFreshness();
@@ -363,6 +385,12 @@ async function init() {
     return;
   }
   show('app', true);
+  if (result.failed) {
+    renderTabs();
+    renderFreshness(result.failed);
+    if (timer === null) timer = setInterval(refresh, REFRESH_MS);
+    return;
+  }
   data = result.body;
   recordHistory(data);
   renderTabs();
