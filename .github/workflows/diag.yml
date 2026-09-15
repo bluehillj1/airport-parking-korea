@@ -1,0 +1,29 @@
+name: diag
+
+# 일회성 진단용. data.go.kr 에 러너에서 닿는지 확인한 뒤 삭제한다.
+on:
+  workflow_dispatch:
+
+jobs:
+  reach:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Where is this runner
+        run: curl -s --max-time 20 https://ipinfo.io/json || echo "ipinfo 실패"
+
+      - name: DNS
+        run: getent hosts apis.data.go.kr || echo "DNS 실패"
+
+      - name: TCP 443
+        run: timeout 25 bash -c 'cat < /dev/null > /dev/tcp/apis.data.go.kr/443' && echo "TCP OK" || echo "TCP 실패"
+
+      - name: HTTPS (키 없이 — 인증오류가 오면 연결은 된 것)
+        run: |
+          curl -sS -o /dev/null -w "http=%{http_code} connect=%{time_connect}s total=%{time_total}s\n" \
+            --max-time 40 \
+            "https://apis.data.go.kr/B551178/parking-realtime-status/info?pageNo=1&numOfRows=1&type=json" \
+            || echo "curl 실패 (exit $?)"
+
+      - name: 비교군 — 다른 해외 API
+        run: curl -sS -o /dev/null -w "github http=%{http_code} total=%{time_total}s\n" --max-time 20 https://api.github.com
