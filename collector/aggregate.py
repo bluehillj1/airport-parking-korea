@@ -19,10 +19,12 @@ KST = timezone(timedelta(hours=9))
 ROOT = Path(__file__).resolve().parent.parent
 INTERVAL_MIN = 5
 TREND_SPAN_MIN = 60
-# 수집 주기(분). 추세 창의 점 개수를 역산하는 데 쓴다.
-# collect.py의 내부 루프 간격과 같아야 하며, 달라지면 추세 구간이 길거나
-# 짧아진다(값 자체는 틀리지 않고 span_minutes 표기만 어긋난다).
-COLLECT_INTERVAL_MIN = 2
+
+
+def _minutes_of(stamp: str) -> int:
+    """HH:MM을 자정 기준 분으로. 수집은 주간에만 하므로 자정을 넘지 않는다."""
+    hour, minute = stamp.split(":")
+    return int(hour) * 60 + int(minute)
 
 
 def _series_for(snapshots: dict, airport_kor: str, lot: str) -> list[tuple[str, int]]:
@@ -66,11 +68,18 @@ def build_latest(raw_dir: Path, day: str, access_path: Path) -> dict:
             trend = None
             if lot_grade != "만차":
                 series = _series_for(snapshots, airport_kor, meta["name"])
-                # 최근 TREND_SPAN_MIN 분에 해당하는 점 개수만 남긴다.
-                # 수집 주기 2분이면 31점 = 60분.
-                window_points = TREND_SPAN_MIN // COLLECT_INTERVAL_MIN + 1
-                window = [value for _, value in series][-window_points:]
-                trend = compute_trend(window, total, TREND_SPAN_MIN)
+                # 창은 개수가 아니라 '시간'으로 자르고, 실제 경과 시간을 보고한다.
+                # 개수로 자르면 수집이 밀렸을 때(예: 20분 간격) 600분짜리 변화를
+                # "60분 +300대"로 표기해 화면에 조용히 틀린 값이 뜬다.
+                if series:
+                    cutoff = _minutes_of(series[-1][0]) - TREND_SPAN_MIN
+                    window = [point for point in series
+                              if _minutes_of(point[0]) >= cutoff]
+                    actual_span = (_minutes_of(window[-1][0])
+                                   - _minutes_of(window[0][0])
+                                   if len(window) >= 2 else 0)
+                    trend = compute_trend([value for _, value in window],
+                                          total, actual_span)
 
         airports.setdefault(code, {
             "name": airport_kor,
@@ -110,11 +119,12 @@ def build_today(raw_dir: Path, day: str, code: str, access_path: Path) -> dict:
             continue
         points = downsample(_series_for(snapshots, airport_kor, meta["name"]),
                             INTERVAL_MIN)
-        if not points:
-            continue
+        # 점이 없어도 항목은 반드시 만든다. 웹앱이 주차장 이름으로 곡선을 찾으므로
+        # latest에는 있는데 today에 없으면 카드 하나가 아니라 페이지 전체가 죽는다.
+        # 하필 API가 이미 불안정할 때 터지는 경로다.
         total = next(
             (r.total for ts in sorted(snapshots) for r in snapshots[ts]
-             if r.airport_kor == airport_kor and r.lot == meta["name"]), 0)
+             if r.airport_kor == airport_kor and r.lot == meta["name"]), None)
         lots[meta["name"]] = {"total": total, "_points": dict(points)}
         all_times.update(stamp for stamp, _ in points)
 
