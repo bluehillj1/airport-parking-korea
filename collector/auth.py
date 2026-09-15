@@ -45,10 +45,39 @@ def hash_password(password: str, *, iterations: int = ITERATIONS,
     return f"{ALGORITHM}${iterations}${_b64e(salt)}${_b64e(derived)}"
 
 
+def describe_encoded(encoded: str) -> str:
+    """저장된 해시의 '모양'만 설명한다. 값은 절대 담지 않는다.
+
+    설정이 잘못됐을 때 로그만 보고 원인을 가르기 위한 것이다. 전체 길이, 필드
+    수, 반복수는 비밀이 아니고, 솔트와 키는 길이만 적는다.
+    """
+    if not encoded:
+        return "absent"
+    encoded = encoded.strip()
+    parts = encoded.split("$")
+    if len(parts) != 4:
+        return f"len={len(encoded)} fields={len(parts)} (expected 4)"
+
+    algorithm, iterations, salt_b64, hash_b64 = parts
+    detail = [f"len={len(encoded)}", f"algo_ok={algorithm == ALGORITHM}",
+              f"iters={iterations}" if iterations.isdigit() else "iters=NOT_A_NUMBER"]
+    for label, text in (("salt", salt_b64), ("key", hash_b64)):
+        try:
+            detail.append(f"{label}={len(_b64d(text))}B")
+        except (binascii.Error, ValueError):
+            detail.append(f"{label}=NOT_BASE64")
+    return " ".join(detail)
+
+
 def verify_password(password: str, encoded: str) -> bool:
-    """어떤 이유로든 해석할 수 없으면 거부한다."""
+    """어떤 이유로든 해석할 수 없으면 거부한다.
+
+    저장값의 앞뒤 공백은 버린다. 해시 문자열에 의미 있는 공백은 없고, 대시보드에
+    붙여넣다 줄바꿈이 섞이는 일이 실제로 흔하다.
+    """
     if not password or not encoded:
         return False
+    encoded = encoded.strip()
     try:
         algorithm, iterations, salt_b64, hash_b64 = encoded.split("$")
         if algorithm != ALGORITHM:

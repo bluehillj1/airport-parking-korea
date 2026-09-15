@@ -4,6 +4,7 @@ import pytest
 
 from collector.auth import (
     COOKIE_NAME,
+    describe_encoded,
     hash_password,
     issue_token,
     set_cookie_header,
@@ -48,6 +49,41 @@ def test_plaintext_password_never_appears_in_hash():
 def test_malformed_stored_hash_is_rejected(encoded):
     """환경변수가 깨졌을 때 '통과'가 아니라 '거부'로 끝나야 한다."""
     assert verify_password("아무암호", encoded) is False
+
+
+def test_surrounding_whitespace_in_stored_hash_is_tolerated():
+    """대시보드에 붙여넣다 줄바꿈이 섞이는 일이 실제로 흔하다.
+
+    해시 문자열에 의미 있는 앞뒤 공백은 없으므로 버리는 것이 맞다.
+    """
+    encoded = hash_password("올바른암호", iterations=FAST)
+    assert verify_password("올바른암호", f"  {encoded}\n") is True
+
+
+def test_describe_reports_shape_of_a_healthy_hash():
+    described = describe_encoded(hash_password("아무암호", iterations=600_000))
+    assert "algo_ok=True" in described
+    assert "iters=600000" in described
+    assert "salt=16B" in described
+    assert "key=32B" in described
+
+
+@pytest.mark.parametrize("encoded,expected", [
+    ("", "absent"),
+    ("짧은값", "fields=1"),
+    ("APP_PASSWORD_HASH=pbkdf2_sha256$600000$YWJj$ZGVm", "algo_ok=False"),
+    ("pbkdf2_sha256$많이$YWJj$ZGVm", "iters=NOT_A_NUMBER"),
+])
+def test_describe_names_the_defect(encoded, expected):
+    assert expected in describe_encoded(encoded)
+
+
+def test_describe_never_leaks_the_stored_value():
+    encoded = hash_password("아무암호", iterations=FAST)
+    described = describe_encoded(encoded)
+    salt_b64 = encoded.split("$")[2]
+    assert salt_b64 not in described
+    assert encoded.split("$")[3] not in described
 
 
 def test_empty_password_rejected():

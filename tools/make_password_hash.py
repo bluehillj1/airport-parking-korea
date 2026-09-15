@@ -29,15 +29,18 @@ def main() -> int:
         print("두 입력이 다릅니다.", file=sys.stderr)
         return 1
 
-    # 'NAME=value' 한 줄로 찍으면 통째로 복사해 값 칸에 넣기 쉽다. 그러면 저장된
-    # 값이 'APP_PASSWORD_HASH=pbkdf2_...' 가 되어 검증이 실패하고, 화면에는
-    # '암호가 틀렸다'고만 나와 원인을 찾기 어렵다. 이름과 값을 떼어 놓는다.
+    # 값은 반드시 제 줄에 단독으로, 앞에 아무것도 없이 찍는다. 'Value xxx' 처럼
+    # 같은 줄에 설명을 붙이면 줄 전체를 복사해 넣게 되고, 그러면 검증은 실패하는데
+    # 화면에는 '암호가 틀렸다'고만 나와 원인을 찾는 데 한참 걸린다.
     print("\nVercel → Settings → Environment Variables\n")
-    for name, value in (("APP_PASSWORD_HASH", hash_password(password)),
-                        ("SESSION_SECRET", secrets.token_urlsafe(32))):
-        print(f"  Key   {name}")
-        print(f"  Value {value}\n")
-    print("Value 칸에는 뒤쪽 값만 넣으세요. 이름은 Key 칸에 따로 들어갑니다.")
+    for index, (name, value) in enumerate(
+            (("APP_PASSWORD_HASH", hash_password(password)),
+             ("SESSION_SECRET", secrets.token_urlsafe(32))), start=1):
+        print(f"[{index}] Key 칸: {name}")
+        print(f"    Value 칸: 아래 한 줄 전체 ({len(value)}자)\n")
+        print(value)
+        print()
+    print("괄호 안 글자 수와 붙여넣은 길이가 같은지 확인하세요.")
     print("(암호 자체는 어디에도 저장되지 않습니다. 잊으면 다시 만드세요.)")
     return 0
 

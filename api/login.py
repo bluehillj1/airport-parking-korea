@@ -16,6 +16,7 @@ if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
 from collector.auth import (  # noqa: E402
+    describe_encoded,
     issue_token,
     set_cookie_header,
     verify_password,
@@ -40,9 +41,14 @@ class handler(BaseHTTPRequestHandler):
             return
 
         password = self._password()
-        # 실패 사유를 구분해 알려주지 않는다. '형식이 틀렸다'와 '틀린 암호다'를
-        # 나눠 주면 공격자에게 단서가 된다.
+        # 응답은 사유를 구분해 주지 않는다. '형식이 틀렸다'와 '틀린 암호다'를
+        # 나눠 주면 공격자에게 단서가 된다. 대신 로그에 저장값의 '모양'만 적어
+        # 설정 실수와 진짜 오타를 우리가 가를 수 있게 한다.
         if not password or not verify_password(password, stored):
+            print(f"login rejected — stored hash {describe_encoded(stored)}; "
+                  f"attempt_len={len(password)} "
+                  f"attempt_has_outer_space={password != password.strip()}",
+                  file=sys.stderr)
             self._json(401, {"error": "unauthorized"})
             return
 
