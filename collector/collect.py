@@ -44,7 +44,7 @@ def main() -> int:
                 written += 1
             else:
                 skipped += 1
-        except ApiError as exc:
+        except (ApiError, ValueError) as exc:
             failed += 1
             print(f"수집 실패: {exc}", file=sys.stderr)
 

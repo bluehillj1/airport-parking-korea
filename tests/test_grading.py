@@ -56,3 +56,13 @@ def test_downsample_keeps_final_bucket():
     """마지막 값이 누락되면 지금 상황이 화면에서 빠진다."""
     points = [("10:00", 10), ("10:07", 25)]
     assert downsample(points, interval_min=5)[-1] == ("10:05", 25)
+
+
+def test_downsample_is_order_independent():
+    """입력 순서와 무관하게 각 버킷의 시간상 마지막 값을 남긴다.
+
+    버킷 10:00 → 10:00, 10:02, 10:04 가 해당. 시간 최대 = 10:04 → 값 12.
+    버킷 10:05 → 10:06 만 해당.               시간 최대 = 10:06 → 값 20.
+    """
+    out_of_order = [("10:06", 20), ("10:00", 10), ("10:04", 12), ("10:02", 11)]
+    assert downsample(out_of_order, interval_min=5) == [("10:00", 12), ("10:05", 20)]

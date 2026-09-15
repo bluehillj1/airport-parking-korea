@@ -50,13 +50,16 @@ def compute_trend(series: list[int], total: int, span_minutes: int) -> dict | No
 
 
 def downsample(points: list[tuple[str, int]], interval_min: int) -> list[tuple[str, int]]:
-    """HH:MM 격자로 내려 각 구간의 마지막 값을 남긴다.
+    """HH:MM 격자로 내려 각 구간의 시간상 마지막 값을 남긴다.
 
     수집은 촘촘하게 하고 앱에 내보낼 때만 성기게 한다. 휴대폰이 받는 용량을
     줄이면서 곡선 모양은 유지된다.
+
+    입력 순서는 무관하다. 함수 내부에서 타임스탬프 기준으로 정렬하므로
+    각 버킷에서 항상 시간적으로 가장 늦은 값이 선택된다.
     """
     buckets: dict[str, int] = {}
-    for stamp, value in points:
+    for stamp, value in sorted(points):
         hour, minute = (int(part) for part in stamp.split(":")[:2])
         bucket_min = minute - (minute % interval_min)
         buckets[f"{hour:02d}:{bucket_min:02d}"] = value
