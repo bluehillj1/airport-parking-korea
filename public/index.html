@@ -8,11 +8,24 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header>
-  <nav id="airports" aria-label="공항 선택"></nav>
-  <p id="freshness" role="status"></p>
-</header>
-<main id="lots"></main>
+
+<form id="login" hidden autocomplete="on">
+  <h1>공항 주차장</h1>
+  <label for="password">접속 암호</label>
+  <input id="password" name="password" type="password"
+         autocomplete="current-password" required>
+  <button type="submit">확인</button>
+  <p id="login-msg" role="status"></p>
+</form>
+
+<div id="app" hidden>
+  <header>
+    <nav id="airports" aria-label="공항 선택"></nav>
+    <p id="freshness" role="status"></p>
+  </header>
+  <main id="lots"></main>
+</div>
+
 <script src="app.js"></script>
 </body>
 </html>

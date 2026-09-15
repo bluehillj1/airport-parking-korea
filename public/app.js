@@ -1,36 +1,122 @@
 'use strict';
 
 const AIRPORTS = [['GMP', '김포'], ['PUS', '김해'], ['CJU', '제주']];
-const STALE_MINUTES = 15;
-const REFRESH_MS = 120000;
+const STALE_MINUTES = 5;
+const REFRESH_MS = 60000;
+const HISTORY_MAX = 60;
 const SPARK = '▁▂▃▄▅▆▇█';
 
-let latest = null;
-let todayCache = {};
-// Guards against overlapping renders (tab tap during the 2-minute refresh, or a
-// slow today-*.json fetch). Without it both runs clear, await, then append -> dupes.
-let renderToken = 0;
+let data = null;
+let timer = null;
+// 서버에 저장소가 없으므로 추세는 이 페이지가 열려 있는 동안만 쌓인다.
+// key: `${공항코드}|${주차장명}` -> [{t: epochMs, v: 주차대수}]
+const lotHistory = {};
 let current = localStorage.getItem('airport') || 'GMP';
 if (!AIRPORTS.some(([code]) => code === current)) current = 'GMP';
 
-async function loadJson(path) {
-  const res = await fetch(`${path}?t=${Date.now()}`, { cache: 'no-store' });
-  if (!res.ok) throw new Error(`${path} ${res.status}`);
-  return res.json();
-}
-
-// source_ts is KST wall-clock text with no offset. Pin it to +09:00 explicitly so
-// the elapsed time is identical no matter what timezone the phone is set to.
-function minutesSince(sourceTs) {
+// source_ts는 오프셋 없는 KST 벽시계 문자열이다. +09:00을 명시해 고정하지 않으면
+// 휴대폰 시간대 설정에 따라 경과 시간이 달라진다.
+function sourceEpoch(sourceTs) {
   if (!sourceTs) return null;
-  const t = Date.parse(sourceTs.replace(' ', 'T') + '+09:00');
-  if (Number.isNaN(t)) return null;
-  return Math.floor((Date.now() - t) / 60000);
+  const t = Date.parse(String(sourceTs).replace(' ', 'T') + '+09:00');
+  return Number.isNaN(t) ? null : t;
 }
 
-function renderFreshness() {
+function minutesSince(sourceTs) {
+  const t = sourceEpoch(sourceTs);
+  return t === null ? null : Math.floor((Date.now() - t) / 60000);
+}
+
+function show(id, visible) {
+  document.getElementById(id).hidden = !visible;
+}
+
+// ---------------------------------------------------------------- 로그인
+
+function showLogin(message) {
+  if (timer !== null) { clearInterval(timer); timer = null; }
+  show('app', false);
+  show('login', true);
+  document.getElementById('login-msg').textContent = message || '';
+  document.getElementById('password').focus();
+}
+
+document.getElementById('login').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const input = document.getElementById('password');
+  const msg = document.getElementById('login-msg');
+  msg.textContent = '확인 중…';
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ password: input.value }),
+    });
+    // 암호는 어디에도 남기지 않는다. 세션은 서버가 준 HttpOnly 쿠키에만 있다.
+    input.value = '';
+    if (!res.ok) {
+      msg.textContent = '암호가 맞지 않습니다.';
+      return;
+    }
+    msg.textContent = '';
+    show('login', false);
+    show('app', true);
+    start();
+  } catch (err) {
+    msg.textContent = '연결에 실패했습니다.';
+  }
+});
+
+// ---------------------------------------------------------------- 데이터
+
+async function loadData() {
+  const res = await fetch('/api/parking', { cache: 'no-store' });
+  if (res.status === 401) return { unauthorized: true };
+  if (!res.ok) throw new Error(`api ${res.status}`);
+  return { body: await res.json() };
+}
+
+// 같은 원천 타임스탬프가 다시 와도 점을 늘리지 않는다. 15초 캐시 때문에 같은
+// 값이 반복해서 오는데, 그걸 쌓으면 없는 변화가 그래프에 그려진다.
+function recordHistory(body) {
+  const t = sourceEpoch(body && body.source_ts);
+  if (t === null) return;
+  for (const [code, airport] of Object.entries(body.airports || {})) {
+    for (const lot of airport.lots || []) {
+      if (!isKnown(lot)) continue;
+      const key = `${code}|${lot.name}`;
+      const points = lotHistory[key] || (lotHistory[key] = []);
+      const last = points[points.length - 1];
+      if (last && last.t === t) continue;
+      points.push({ t, v: lot.occupied });
+      if (points.length > HISTORY_MAX) points.shift();
+    }
+  }
+}
+
+function computeTrend(points, total) {
+  if (!points || points.length < 2) return null;
+  const first = points[0];
+  const last = points[points.length - 1];
+  const delta = last.v - first.v;
+  return {
+    delta,
+    span: Math.max(1, Math.round((last.t - first.t) / 60000)),
+    // 규모 대비 1% 미만(최소 3대)은 방향을 단정하지 않는다.
+    significant: Math.abs(delta) >= Math.max(3, (total || 0) * 0.01),
+  };
+}
+
+// ---------------------------------------------------------------- 렌더링
+
+function renderFreshness(error) {
   const el = document.getElementById('freshness');
-  const mins = latest ? minutesSince(latest.source_ts) : null;
+  if (error) {
+    el.textContent = error;
+    el.classList.add('stale');
+    return;
+  }
+  const mins = data ? minutesSince(data.source_ts) : null;
   if (mins === null) {
     el.textContent = '정보를 불러오지 못했습니다';
     el.classList.add('stale');
@@ -66,12 +152,11 @@ function isKnown(lot) {
   return lot && lot.free !== null && lot.free !== undefined;
 }
 
-// A 15-car swing on a 1763-space lot is noise, not a trend. Force the chart to span
-// at least 5% of capacity so small wobbles stay visually flat instead of inventing drama.
-function sparkline(values, total) {
-  const pts = (values || []).filter(v => v !== null && v !== undefined && !Number.isNaN(v));
-  if (pts.length < 2) return '';
-  const tail = pts.slice(-24);
+// 1763면 주차장에서 15대 출렁임은 추세가 아니라 잡음이다. 최소 진폭을 정원의
+// 5%로 강제해 작은 흔들림이 화면을 가득 채우지 않게 한다.
+function sparkline(points, total) {
+  if (!points || points.length < 2) return '';
+  const tail = points.slice(-24).map(p => p.v);
   let lo = Math.min(...tail);
   let hi = Math.max(...tail);
   const floor = Math.max(2, (total || 0) * 0.05);
@@ -101,25 +186,25 @@ function accessLabel(lot, shuttle) {
   if (Array.isArray(w) && w.length === 2 && w[0] !== null && w[1] !== null) {
     return w[0] === w[1] ? `도보 ${w[0]}분` : `도보 ${w[0]}~${w[1]}분`;
   }
-  // confidence "unverified" -> we do not know the real walking time, so don't claim one.
+  // confidence "unverified" — 실제 도보시간을 모르므로 분을 지어내지 않는다.
   return '도보권';
 }
 
-function trendLabel(lot) {
+function trendLabel(lot, points) {
   if (!isKnown(lot)) return '정보를 받지 못했습니다';
-  // The source counter freezes at 100%, so a full lot's delta is meaningless.
+  // 원천 카운터가 100%에서 고정되므로 만차 주차장의 증감은 의미가 없다.
   if (lot.grade === '만차') return '만차 — 입출차 정보 없음';
-  const t = lot.trend;
-  if (!t) return '추세 집계 중';
+  const t = computeTrend(points, lot.total);
+  if (!t) return '잠시 열어두면 변화가 보입니다';
   if (!t.significant) return '→ 큰 변화 없음';
   return t.delta > 0
-    ? `↗ ${t.span_minutes}분 +${t.delta}대`
-    : `↘ ${t.span_minutes}분 ${t.delta}대`;
+    ? `↗ ${t.span}분 +${t.delta}대`
+    : `↘ ${t.span}분 ${t.delta}대`;
 }
 
-// Rule 2: 정보 없음 last, 만차 before that, then walk-accessible before shuttle-only,
-// then most free spaces first. Unknown lots are ranked explicitly so `null - null`
-// (NaN) never reaches the comparator and silently corrupts the sort.
+// 정보 없음이 맨 뒤, 그 앞이 만차, 그다음 셔틀 전용, 도보권이 우선. 같은 등급
+// 안에서는 빈자리가 많은 순. 미상 주차장은 순위를 명시해 null 연산이 NaN으로
+// 새어들어 정렬을 조용히 망가뜨리는 일을 막는다.
 function lotRank(lot) {
   if (!isKnown(lot) || lot.grade === '정보 없음') return 3;
   if (lot.grade === '만차') return 2;
@@ -134,11 +219,11 @@ function sortLots(lots) {
     const fa = isKnown(a) ? a.free : -1;
     const fb = isKnown(b) ? b.free : -1;
     if (fa !== fb) return fb - fa;
-    return String(a && a.name || '').localeCompare(String(b && b.name || ''), 'ko');
+    return String((a && a.name) || '').localeCompare(String((b && b.name) || ''), 'ko');
   });
 }
 
-function lotCard(lot, shuttle, curve) {
+function lotCard(lot, shuttle, points) {
   const card = document.createElement('section');
   card.className = 'lot';
 
@@ -156,7 +241,8 @@ function lotCard(lot, shuttle, curve) {
   head.appendChild(grade);
   card.appendChild(head);
 
-  // Free SPACES are the headline: 99% and 91% look alike but mean 17 vs 151 cars.
+  // 퍼센트가 아니라 빈 면수가 헤드라인이다. 99%와 91%는 비슷해 보이지만
+  // 17면과 151면이다.
   const free = document.createElement('p');
   free.className = 'free';
   const pct = document.createElement('small');
@@ -175,28 +261,27 @@ function lotCard(lot, shuttle, curve) {
   meta.textContent = accessLabel(lot, shuttle);
   card.appendChild(meta);
 
-  const spark = curve ? sparkline(curve.occupied, curve.total !== null && curve.total !== undefined ? curve.total : lot.total) : '';
   const trend = document.createElement('p');
   trend.className = 'meta';
-  if (spark && lot.grade !== '만차') {
+  const spark = lot.grade === '만차' ? '' : sparkline(points, lot.total);
+  if (spark) {
     const s = document.createElement('span');
     s.className = 'spark';
     s.textContent = spark;
     trend.appendChild(s);
     trend.appendChild(document.createTextNode(' '));
   }
-  trend.appendChild(document.createTextNode(trendLabel(lot)));
+  trend.appendChild(document.createTextNode(trendLabel(lot, points)));
   card.appendChild(trend);
 
   return card;
 }
 
-async function renderLots() {
-  const token = ++renderToken;
+function renderLots() {
   const main = document.getElementById('lots');
-  const airport = latest && latest.airports && latest.airports[current];
+  main.textContent = '';
+  const airport = data && data.airports && data.airports[current];
   if (!airport || !Array.isArray(airport.lots) || airport.lots.length === 0) {
-    main.textContent = '';
     const p = document.createElement('p');
     p.className = 'empty';
     p.textContent = '데이터 없음';
@@ -204,24 +289,7 @@ async function renderLots() {
     return;
   }
 
-  const code = current;
-  if (!todayCache[code]) {
-    try {
-      todayCache[code] = await loadJson(`data/today-${code}.json`);
-    } catch (err) {
-      // Degraded API: no curves today. Cards must still render — this is exactly
-      // the moment the page matters most.
-      console.error(`today-${code}.json 로드 실패`, err);
-      todayCache[code] = { lots: {} };
-    }
-  }
-  // A newer render started while we awaited; that one owns the DOM now.
-  if (token !== renderToken) return;
-  main.textContent = '';
-  const today = todayCache[code] || { lots: {} };
-  const curves = today.lots || {};
   const shuttle = airport.shuttle || null;
-
   const order = [];
   const groups = new Map();
   for (const lot of airport.lots) {
@@ -230,7 +298,8 @@ async function renderLots() {
     groups.get(key).push(lot);
   }
 
-  // 김포 has two terminals ~1km apart linked by a shuttle; 김해·제주 have one, so no headers.
+  // 김포는 국내선·국제선이 1km쯤 떨어져 셔틀로 이어진다. 김해·제주는 하나뿐이라
+  // 구분 제목을 붙이지 않는다.
   const multi = order.length > 1;
   for (const key of order) {
     if (multi) {
@@ -242,22 +311,64 @@ async function renderLots() {
       main.appendChild(h);
     }
     for (const lot of sortLots(groups.get(key))) {
-      main.appendChild(lotCard(lot, shuttle, curves[lot.name]));
+      main.appendChild(lotCard(lot, shuttle, lotHistory[`${current}|${lot.name}`]));
     }
   }
 }
 
-async function init() {
-  renderTabs();
-  todayCache = {}; // drop cached curves so the 2-minute refresh picks up new points
+// ---------------------------------------------------------------- 순환
+
+async function refresh() {
+  let result;
   try {
-    latest = await loadJson('data/latest.json');
+    result = await loadData();
   } catch (err) {
-    console.error('latest.json 로드 실패', err);
+    console.error('주차정보 요청 실패', err);
+    renderFreshness('실시간 정보를 가져오지 못했습니다');
+    return;
   }
+  if (result.unauthorized) {
+    showLogin('다시 로그인해 주세요.');
+    return;
+  }
+  data = result.body;
+  recordHistory(data);
   renderFreshness();
   renderLots();
 }
 
+function start() {
+  renderTabs();
+  refresh();
+  if (timer === null) timer = setInterval(refresh, REFRESH_MS);
+}
+
+// 첫 요청의 역할은 데이터를 받는 것이면서 동시에 인증 여부를 확인하는 것이다.
+// 401이면 로그인 화면으로, 아니면 그대로 순환을 시작한다.
+async function init() {
+  let result;
+  try {
+    result = await loadData();
+  } catch (err) {
+    // 일시적 장애일 수 있으므로 화면은 띄우고 타이머로 회복을 기다린다.
+    console.error('주차정보 요청 실패', err);
+    show('app', true);
+    renderTabs();
+    renderFreshness('실시간 정보를 가져오지 못했습니다');
+    if (timer === null) timer = setInterval(refresh, REFRESH_MS);
+    return;
+  }
+  if (result.unauthorized) {
+    showLogin('');
+    return;
+  }
+  show('app', true);
+  data = result.body;
+  recordHistory(data);
+  renderTabs();
+  renderFreshness();
+  renderLots();
+  if (timer === null) timer = setInterval(refresh, REFRESH_MS);
+}
+
 init();
-setInterval(init, REFRESH_MS);

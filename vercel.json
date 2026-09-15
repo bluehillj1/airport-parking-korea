@@ -1,7 +1,13 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "regions": ["icn1"],
-  "outputDirectory": "public",
+  "framework": null,
   "buildCommand": null,
-  "framework": null
+  "outputDirectory": "public",
+  "functions": {
+    "api/*.py": {
+      "maxDuration": 15,
+      "includeFiles": "{collector/**,data/**}"
+    }
+  }
 }

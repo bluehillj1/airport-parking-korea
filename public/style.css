@@ -8,6 +8,19 @@ body {
   font-family: system-ui, -apple-system, "Malgun Gothic", sans-serif;
   padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
 }
+[hidden] { display:none !important; }
+
+#login { max-width:320px; margin:18vh auto 0; padding:0 24px; }
+#login h1 { font-size:20px; margin:0 0 24px; }
+#login label { display:block; font-size:13px; color:var(--muted); margin-bottom:6px; }
+#login input, #login button {
+  width:100%; padding:12px; font-size:16px; border-radius:8px;
+  border:1px solid var(--line);
+}
+#login input { background:transparent; color:var(--fg); }
+#login button { margin-top:12px; background:var(--fg); color:var(--bg); border-color:var(--fg); }
+#login-msg { font-size:13px; color:var(--warn); min-height:1.2em; }
+
 header { padding:12px 16px 8px; border-bottom:1px solid var(--line); }
 #airports { display:flex; gap:8px; }
 #airports button {

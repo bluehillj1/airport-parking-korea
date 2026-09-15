@@ -6,6 +6,12 @@
 # 측정 로그
 probe/refresh_log.jsonl
 
+# 수집기 시절의 산출물. 지금은 저장소 없이 요청할 때마다 원천을 직접 부르므로
+# 다시 생기지 않는다. public/ 아래에 있으면 인증 없이 배포되는 정적 파일이 되어
+# 낡은 스냅샷이 공개되므로 특히 커밋하면 안 된다.
+raw/
+public/data/
+
 # Python
 __pycache__/
 *.py[cod]
