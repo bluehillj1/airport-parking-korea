@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import http.client
 import json
 import urllib.error
 import urllib.parse
@@ -42,29 +43,34 @@ def parse(payload: dict) -> list[LotReading]:
         header = payload["OpenAPI_ServiceResponse"].get("cmmMsgHeader", {})
         raise ApiError(header.get("errMsg", "unknown auth error"))
 
-    response = payload.get("response", {})
+    response = payload.get("response") or {}
     header = response.get("header", {})
     if header.get("resultCode") != "00":
         raise ApiError(header.get("resultMsg", "unknown error"))
 
-    items = response.get("body", {}).get("items") or {}
+    body = response.get("body") or {}
+    items = body.get("items") or {}
     if isinstance(items, dict):
         items = items.get("item", [])
     if isinstance(items, dict):  # 1건일 때 dict로 오는 경우
         items = [items]
 
-    return [
-        LotReading(
-            airport_kor=item.get("aprKor", ""),
-            lot=item.get("parkingAirportCodeName", ""),
-            total=_as_int(item.get("parkingFullSpace")),
-            stay=_as_int(item.get("parkingIstay")),
-            cum_in=_as_int(item.get("parkingIincnt")),
-            cum_out=_as_int(item.get("parkingIoutcnt")),
-            src_ts=f"{item.get('parkingGetdate')} {item.get('parkingGettime')}",
+    readings: list[LotReading] = []
+    for item in items:
+        date_part = item.get("parkingGetdate") or ""
+        time_part = item.get("parkingGettime") or ""
+        readings.append(
+            LotReading(
+                airport_kor=item.get("aprKor", ""),
+                lot=item.get("parkingAirportCodeName", ""),
+                total=_as_int(item.get("parkingFullSpace")),
+                stay=_as_int(item.get("parkingIstay")),
+                cum_in=_as_int(item.get("parkingIincnt")),
+                cum_out=_as_int(item.get("parkingIoutcnt")),
+                src_ts=f"{date_part} {time_part}".strip(),
+            )
         )
-        for item in items
-    ]
+    return readings
 
 
 def representative_ts(readings: list[LotReading]) -> str:
@@ -87,7 +93,7 @@ def fetch(service_key: str, timeout: float = 15.0) -> list[LotReading]:
     try:
         with urllib.request.urlopen(url, timeout=timeout) as resp:
             raw = resp.read().decode("utf-8", errors="replace")
-    except urllib.error.URLError as exc:
+    except (OSError, http.client.HTTPException) as exc:
         raise ApiError(f"network: {exc}") from exc
 
     try:
