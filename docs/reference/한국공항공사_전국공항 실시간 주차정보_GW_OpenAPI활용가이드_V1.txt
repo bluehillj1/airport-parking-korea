@@ -1,0 +1,286 @@
+﻿-26670020256500
+한국공항공사 전국공항 실시간 주차정보 GW
+OpenAPI 활용가이드
+개정 이력
+버 전
+| 변경일
+| 변경 사유
+| 변경 내용
+| 작성자
+| 승인
+| 제정
+| 2026-08-11
+| 제정
+| 제정
+| 김민섭
+| 김민섭
+목 차
+TOC \o "1-3" \h \z \u 1. 서비스 목록 PAGEREF _Toc529368701 \h 3
+2. 서비스 명세 PAGEREF _Toc529368702 \h 3
+2.1. 전국공항 실시간 주차정보 PAGEREF _Toc529368703 \h 3
+가. 서비스 개요 PAGEREF _Toc529368704 \h 3
+나. 오퍼레이션 목록 PAGEREF _Toc529368705 \h 4
+서비스 목록
+순번
+| 서비스 ID
+| 서비스명(영문)
+| 서비스명(국문)
+| 1
+| parking-realtime-status
+| Korea Airports Corporation Nationwide airport real-time parking information
+| 전국공항 실시간 주차정보
+서비스 명세
+전국공항 실시간 주차정보
+서비스 개요
+서비스
+정보
+| 서비스 ID
+| parking-realtime-status
+| 서비스명(국문)
+| 전국공항 실시간 주차정보
+| 서비스명(영문)
+| Korea Airports Corporation Nationwide airport real-time parking information
+| 서비스 설명
+| 한국공항공사가 운영하는 전국공항 주차장 정보를 실시간으로 제공하며, 공항명, 주차장명, 전체 주차면 수, 입고 및 출고 차량 수, 현재 주차 차량 수와 업데이트 일시를 조회할 수 있는 서비스
+| 서비스
+제공자정보
+| 기관명
+| 한국공항공사
+| 담당자명
+| 김민섭
+| 담당자 연락처
+| 02-2660-4803
+| 담당자 e-Mail
+| 서비스
+보안
+| 서비스 인증/권한
+| [O] 서비스 Key [ ] 인증서 (GPKI)
+[ ] Basic (ID/PW) [ ] 없음
+| [ ] WS-Security
+| 메시지 레벨 암호화
+| [ ] 전자서명 [ ] 암호화 [O] 없음
+| 전송 레벨 암호화
+| [ ] SSL [O] 없음
+| 적용
+기술
+수준
+| 인터페이스 표준
+| [ ] SOAP 1.2
+(RPC-Encoded, Document Literal, Document Literal Wrapped)
+[O] REST (GET, POST, PUT, DELETE)
+[ ] RSS 1.0 [ ] RSS 1.0 [ ] Atom 1.0 [ ] 기타
+| 교환 데이터 표준
+| [O] XML [O] JSON [ ] MIME [ ] MTOM
+| 서비스
+URL
+| 개발환경
+| https://apis.data.go.kr/B551178/parking-realtime-status/
+| 운영환경
+| https://apis.data.go.kr/B551178/parking-realtime-status/
+| 서비스
+WADL
+| 개발환경
+| https://apis.data.go.kr/B551178/parking-realtime-status/info?serviceKey={ServiceKey}
+| 운영환경
+| https://apis.data.go.kr/B551178/parking-realtime-status/info?serviceKey={ServiceKey}
+| 서비스
+배포
+정보
+| 서비스 버전
+| 1.0
+| 서비스 시작일
+| 2026-05-27
+| 배포 일자
+| 2026-05-27
+| 서비스 이력
+| N/A
+| 메시지 교환 유형
+| [O] Request-Response [ ] Publish-Subscribe
+[ ] Fire-and-Forgot [ ] Notification
+| 메시지 로깅 수준
+| 성공
+| [O] Header [ ] Body
+| 실패
+| [O] Header [O] Body
+| 사용 제약 사항 (비고)
+| N/A
+| 데이터 갱신주기
+| N/A
+오퍼레이션 목록
+일련번호
+| 서비스명(국문)
+| 오퍼레이션명(영문)
+| 오퍼레이션명(국문)
+| 메시지명(영문)
+| 1
+| 전국공항 실시간 주차정보
+| Nationwide Airport Parking Information
+| 전국공항 주차정보
+| N/A
+전국공항 주차정보 오퍼레이션 명세
+오퍼레이션
+정보
+| 오퍼레이션 번호
+| 1
+| 오퍼레이션명(국문)
+| 전국공항 주차정보
+| 오퍼레이션 유형
+| 조회(목록)
+| 오퍼레이션명(영문)
+| Nationwide Airport Parking Information
+| 오퍼레이션 설명
+| 한국공항공사가 운영하는 전국공항 주차장 정보를 실시간으로 조회하며, 공항명, 주차장명, 전체 주차면 수, 입고 및 출고 차량 수, 현재 주차 차량 수와 업데이트 일시를 제공
+| Call Back URL
+| https://apis.data.go.kr/B551178/parking-realtime-status/info
+| 최대 메시지 사이즈
+| N/A
+| 평균 응답 시간
+| N/A
+| 초당 최대 트랜잭션
+| N/A
+| 호출
+메시지
+정보
+| 메시지명(영문)
+| Request
+| 메시지타입
+| 1. 변수형
+2. 변수형
+| 메시지설명
+| 1. 서비스 인증키를 입력한다.2. 페이지번호 및 한 페이지 결과 수를 필요에 따라 입력한다.3. 공항코드(schAirportCode)를 필요에 따라 입력한다.4. 응답 형식을 입력한다.
+| 선행 오퍼레이션
+| N/A
+| 응답
+메시지
+정보
+| 메시지명(영문)
+| Response
+| 메시지 타입
+| 리스트형
+| 메시지 설명
+| 조회 조건에 해당하는 전국공항 실시간 주차정보를 조회하고, 공항명, 주차장명, 전체 주차면 수, 입고 및 출고 차량 수, 현재 주차 차량 수와 업데이트 일시를 제공한다.
+| HTTP Method
+| [O] REST (GET, POST, PUT, DELETE)
+요청 메시지 명세
+메시지명(영문)
+/END POINT URL
+| https://apis.data.go.kr/B551178/parking-realtime-status/info
+| 항목명(영문)
+| 항목명(국문)
+| 항목
+크기
+| 항목
+구분
+| 샘플데이터
+| 항목설명
+| serviceKey
+| 인증키
+| 필수
+| 인증키
+| 공공데이터포털에서 받은 인증키
+| pageNo
+| 페이지번호
+| 옵션
+| 1
+| 페이지번호
+| numOfRows
+| 한 페이지 결과 수
+| 옵션
+| 10
+| 한 페이지 결과 수
+| schAirportCode
+| 공항코드
+| 옵션
+| GMP
+| 공항명(예: GMP, PUS, CJU 등)
+| type
+| 응답 형식
+| 옵션
+| xml
+| 응답 형식(JSON &amp; XML)
+응답 메시지 명세
+메시지명(영문)
+| Response
+| 항목명(영문)
+| 항목명(국문)
+| 항목
+크기
+| 항목
+구분
+| 샘플데이터
+| 항목설명
+| resultCode
+| 결과코드
+| 필수
+| 00
+| 결과코드
+| resultMsg
+| 결과메시지
+| 필수
+| NORMAL SERVICE.
+| 결과메시지
+| parkingGetdate
+| 업데이트 일자
+| 필수
+| 2026-08-13
+| 업데이트 일자
+| parkingGettime
+| 업데이트 시간
+| 필수
+| 17:47:03
+| 업데이트 시간
+| parkingFullSpace
+| 전체 주차면 수
+| 필수
+| 2279
+| 전체 주차면 수
+| aprKor
+| 공항명(국문)
+| 필수
+| 김포국제공항
+| 공항명(국문)
+| aprEng
+| 공항명(영문)
+| 필수
+| GIMPO INTERNATIONAL AIRPORT
+| 공항명(영문)
+| parkingAirportCodeName
+| 주차장명
+| 필수
+| 국내선 제1주차장
+| 주차장명
+| parkingIincnt
+| 입고된 차량 수
+| 필수
+| 1833
+| 입고된 차량 수
+| parkingIoutcnt
+| 출고된 차량 수
+| 필수
+| 1179
+| 출고된 차량 수
+| parkingIstay
+| 현재 주차 차량 수
+| 필수
+| 2216
+| 현재 주차되어 있는 차량 수
+| numOfRows
+| 한 페이지 결과 수
+| 옵션
+| 10
+| 한 페이지 결과 수
+| pageNo
+| 페이지번호
+| 옵션
+| 1
+| 페이지번호
+| totalCount
+| 전체 결과 수
+| 옵션
+| 25
+| 전체 결과 수
+요청 / 응답 메시지 예제
+REST (URL)
+| https://apis.data.go.kr/B551178/parking-realtime-status/info?serviceKey=인증키&amp;pageNo=1&amp;numOfRows=10&amp;schAirportCode=GMP&amp;type=xml
+| 응답 메시지
+| &lt;response&gt; &lt;script/&gt; &lt;header&gt; &lt;resultCode&gt;00&lt;/resultCode&gt; &lt;resultMsg&gt;NORMAL SERVICE.&lt;/resultMsg&gt; &lt;/header&gt; &lt;body&gt; &lt;numOfRows&gt;10&lt;/numOfRows&gt; &lt;pageNo&gt;1&lt;/pageNo&gt; &lt;totalCount&gt;25&lt;/totalCount&gt; &lt;items&gt; &lt;item&gt; &lt;parkingGetdate&gt;2026-08-13&lt;/parkingGetdate&gt; &lt;parkingGettime&gt;17:47:03&lt;/parkingGettime&gt; &lt;parkingFullSpace&gt;2279&lt;/parkingFullSpace&gt; &lt;aprKor&gt;김포국제공항&lt;/aprKor&gt; &lt;aprEng&gt;GIMPO INTERNATIONAL AIRPORT&lt;/aprEng&gt; &lt;parkingAirportCodeName&gt;국내선 제1주차장&lt;/parkingAirportCodeName&gt; &lt;parkingIincnt&gt;1833&lt;/parkingIincnt&gt; &lt;parkingIoutcnt&gt;1179&lt;/parkingIoutcnt&gt; &lt;parkingIstay&gt;2216&lt;/parkingIstay&gt; &lt;/item&gt; &lt;item&gt; &lt;parkingGetdate&gt;2026-08-13&lt;/parkingGetdate&gt; &lt;parkingGettime&gt;17:47:03&lt;/parkingGettime&gt; &lt;parkingFullSpace&gt;1733&lt;/parkingFullSpace&gt; &lt;aprKor&gt;김포국제공항&lt;/aprKor&gt; &lt;aprEng&gt;GIMPO INTERNATIONAL AIRPORT&lt;/aprEng&gt; &lt;parkingAirportCodeName&gt;국내선 제2주차장&lt;/parkingAirportCodeName&gt; &lt;parkingIincnt&gt;1024&lt;/parkingIincnt&gt; &lt;parkingIoutcnt&gt;623&lt;/parkingIoutcnt&gt; &lt;parkingIstay&gt;1541&lt;/parkingIstay&gt; &lt;/item&gt; &lt;item&gt; &lt;parkingGetdate&gt;2026-08-13&lt;/parkingGetdate&gt; &lt;parkingGettime&gt;17:47:03&lt;/parkingGettime&gt; &lt;parkingFullSpace&gt;567&lt;/parkingFullSpace&gt; &lt;aprKor&gt;김포국제공항&lt;/aprKor&gt; &lt;aprEng&gt;GIMPO INTERNATIONAL AIRPORT&lt;/aprEng&gt; &lt;parkingAirportCodeName&gt;국제선 주차빌딩&lt;/parkingAirportCodeName&gt; &lt;parkingIincnt&gt;681&lt;/parkingIincnt&gt; &lt;parkingIoutcnt&gt;556&lt;/parkingIoutcnt&gt; &lt;parkingIstay&gt;368&lt;/parkingIstay&gt; &lt;/item&gt; &lt;item&gt; &lt;parkingGetdate&gt;2026-08-13&lt;/parkingGetdate&gt; &lt;parkingGettime&gt;17:47:03&lt;/parkingGettime&gt; &lt;parkingFullSpace&gt;599&lt;/parkingFullSpace&gt; &lt;aprKor&gt;김포국제공항&lt;/aprKor&gt; &lt;aprEng&gt;GIMPO INTERNATIONAL AIRPORT&lt;/aprEng&gt; &lt;parkingAirportCodeName&gt;국제선 지하&lt;/parkingAirportCodeName&gt; &lt;parkingIincnt&gt;378&lt;/parkingIincnt&gt; &lt;parkingIoutcnt&gt;248&lt;/parkingIoutcnt&gt; &lt;parkingIstay&gt;419&lt;/parkingIstay&gt; &lt;/item&gt; &lt;item&gt; &lt;parkingGetdate&gt;2026-08-13&lt;/parkingGetdate&gt; &lt;parkingGettime&gt;17:47:03&lt;/parkingGettime&gt; &lt;parkingFullSpace&gt;737&lt;/parkingFullSpace&gt; &lt;aprKor&gt;김포국제공항&lt;/aprKor&gt; &lt;aprEng&gt;GIMPO INTERNATIONAL AIRPORT&lt;/aprEng&gt; &lt;parkingAirportCodeName&gt;화물청사&lt;/parkingAirportCodeName&gt; &lt;parkingIincnt&gt;2859&lt;/parkingIincnt&gt; &lt;parkingIoutcnt&gt;2481&lt;/parkingIoutcnt&gt; &lt;parkingIstay&gt;373&lt;/parkingIstay&gt; &lt;/item&gt; &lt;item&gt; &lt;parkingGetdate&gt;2026-08-13&lt;/parkingGetdate&gt; &lt;parkingGettime&gt;17:47:03&lt;/parkingGettime&gt; &lt;parkingFullSpace&gt;2005&lt;/parkingFullSpace&gt; &lt;aprKor&gt;김해국제공항&lt;/aprKor&gt; &lt;aprEng&gt;GIMHAE INTERNATIONAL AIRPORT&lt;/aprEng&gt; &lt;parkingAirportCodeName&gt;P1 여객주차장&lt;/parkingAirportCodeName&gt; &lt;parkingIincnt&gt;1104&lt;/parkingIincnt&gt; &lt;parkingIoutcnt&gt;639&lt;/parkingIoutcnt&gt; &lt;parkingIstay&gt;2001&lt;/parkingIstay&gt; &lt;/item&gt; &lt;item&gt; &lt;parkingGetdate&gt;2026-08-13&lt;/parkingGetdate&gt; &lt;parkingGettime&gt;17:47:03&lt;/parkingGettime&gt; &lt;parkingFullSpace&gt;2453&lt;/parkingFullSpace&gt; &lt;aprKor&gt;김해국제공항&lt;/aprKor&gt; &lt;aprEng&gt;GIMHAE INTERNATIONAL AIRPORT&lt;/aprEng&gt; &lt;parkingAirportCodeName&gt;P2 여객주차장&lt;/parkingAirportCodeName&gt; &lt;parkingIincnt&gt;1174&lt;/parkingIincnt&gt; &lt;parkingIoutcnt&gt;1006&lt;/parkingIoutcnt&gt; &lt;parkingIstay&gt;2453&lt;/parkingIstay&gt; &lt;/item&gt; &lt;item&gt; &lt;parkingGetdate&gt;2026-08-13&lt;/parkingGetdate&gt; &lt;parkingGettime&gt;17:47:03&lt;/parkingGettime&gt; &lt;parkingFullSpace&gt;878&lt;/parkingFullSpace&gt; &lt;aprKor&gt;김해국제공항&lt;/aprKor&gt; &lt;aprEng&gt;GIMHAE INTERNATIONAL AIRPORT&lt;/aprEng&gt; &lt;parkingAirportCodeName&gt;P3 여객(화물)&lt;/parkingAirportCodeName&gt; &lt;parkingIincnt&gt;688&lt;/parkingIincnt&gt; &lt;parkingIoutcnt&gt;596&lt;/parkingIoutcnt&gt; &lt;parkingIstay&gt;878&lt;/parkingIstay&gt; &lt;/item&gt; &lt;item&gt; &lt;parkingGetdate&gt;2026-08-13&lt;/parkingGetdate&gt; &lt;parkingGettime&gt;17:47:03&lt;/parkingGettime&gt; &lt;parkingFullSpace&gt;1763&lt;/parkingFullSpace&gt; &lt;aprKor&gt;제주국제공항&lt;/aprKor&gt; &lt;aprEng&gt;JEJU INTERNATIONAL AIRPORT&lt;/aprEng&gt; &lt;parkingAirportCodeName&gt;P1주차장&lt;/parkingAirportCodeName&gt; &lt;parkingIincnt&gt;4023&lt;/parkingIincnt&gt; &lt;parkingIoutcnt&gt;3335&lt;/parkingIoutcnt&gt; &lt;parkingIstay&gt;1511&lt;/parkingIstay&gt; &lt;/item&gt; &lt;item&gt; &lt;parkingGetdate&gt;2026-08-13&lt;/parkingGetdate&gt; &lt;parkingGettime&gt;17:47:03&lt;/parkingGettime&gt; &lt;parkingFullSpace&gt;488&lt;/parkingFullSpace&gt; &lt;aprKor&gt;제주국제공항&lt;/aprKor&gt; &lt;aprEng&gt;JEJU INTERNATIONAL AIRPORT&lt;/aprEng&gt; &lt;parkingAirportCodeName&gt;P2장기주차장&lt;/parkingAirportCodeName&gt; &lt;parkingIincnt&gt;211&lt;/parkingIincnt&gt; &lt;parkingIoutcnt&gt;133&lt;/parkingIoutcnt&gt; &lt;parkingIstay&gt;359&lt;/parkingIstay&gt; &lt;/item&gt; &lt;/items&gt; &lt;/body&gt;&lt;/response&gt;

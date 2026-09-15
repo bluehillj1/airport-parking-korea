@@ -1,0 +1,141 @@
+{
+  "_about": "주차장별 접근성 메타데이터. 실시간 API로는 오지 않는 정적 정보라 별도 관리한다.",
+  "_join": "API 응답의 aprKor + parkingAirportCodeName 조합으로 조인한다. 값이 한 글자라도 다르면 조인이 깨지므로 2026-09-15 실측 응답의 문자열을 그대로 옮겨 적었다.",
+  "_confidence": {
+    "official": "공항 공식 홈페이지에 명시된 값",
+    "secondary": "나무위키 등 2차 출처. 재확인 필요",
+    "user": "앱 사용자 본인의 이용 경험 (2026-09-15 확인)",
+    "unverified": "근거 없음. 앱에서 구체적 수치를 표시하지 말 것"
+  },
+
+  "airports": {
+    "GMP": {
+      "name_kor": "김포국제공항",
+      "terminals": ["국내선", "국제선"],
+      "shuttle": {
+        "name": "순환버스 여객청사행",
+        "headway_min": [12, 15],
+        "note": "국제선 ↔ 국내선 ↔ 국내선제2주차장 순환",
+        "confidence": "secondary"
+      }
+    },
+    "PUS": {
+      "name_kor": "김해국제공항",
+      "terminals": ["국내선", "국제선"],
+      "shuttle": {
+        "name": "순환버스",
+        "headway_min": [10, 10],
+        "hours": "05:00~22:50",
+        "note": "무료 운행",
+        "confidence": "official"
+      }
+    },
+    "CJU": {
+      "name_kor": "제주국제공항",
+      "terminals": ["여객"],
+      "shuttle": null
+    }
+  },
+
+  "lots": [
+    {
+      "airport": "GMP",
+      "name": "국내선 제1주차장",
+      "terminal": "국내선",
+      "walk_min": [5, 7],
+      "passenger_use": true,
+      "confidence": "user"
+    },
+    {
+      "airport": "GMP",
+      "name": "국내선 제2주차장",
+      "terminal": "국내선",
+      "walk_min": [10, 12],
+      "passenger_use": true,
+      "confidence": "user",
+      "note": "순환버스 정차지이기도 함"
+    },
+    {
+      "airport": "GMP",
+      "name": "국제선 주차빌딩",
+      "terminal": "국제선",
+      "walk_min": null,
+      "passenger_use": true,
+      "confidence": "unverified",
+      "note": "국제선청사 도보권으로 추정되나 소요시간 미확인"
+    },
+    {
+      "airport": "GMP",
+      "name": "국제선 지하",
+      "terminal": "국제선",
+      "walk_min": null,
+      "passenger_use": true,
+      "confidence": "unverified",
+      "note": "국제선청사 지하. 소요시간 미확인"
+    },
+    {
+      "airport": "GMP",
+      "name": "화물청사",
+      "terminal": "화물",
+      "walk_min": null,
+      "passenger_use": false,
+      "confidence": "secondary",
+      "note": "화물청사행 노선이 보세구역을 경유해 여객 이용에 부적합"
+    },
+
+    {
+      "airport": "PUS",
+      "name": "P1 여객주차장",
+      "terminal": "국내선",
+      "walk_min": null,
+      "passenger_use": true,
+      "confidence": "user",
+      "note": "도보권. 정확한 소요시간 미확인"
+    },
+    {
+      "airport": "PUS",
+      "name": "P2 여객주차장",
+      "terminal": "국내선",
+      "walk_min": null,
+      "passenger_use": true,
+      "confidence": "user",
+      "note": "도보권. 정확한 소요시간 미확인"
+    },
+    {
+      "airport": "PUS",
+      "name": "P3 여객(화물)",
+      "terminal": "국내선",
+      "walk_min": null,
+      "passenger_use": true,
+      "requires_shuttle": true,
+      "confidence": "user",
+      "note": "화물 겸용이라 청사에서 멀어 순환버스 이용"
+    },
+
+    {
+      "airport": "CJU",
+      "name": "P1주차장",
+      "terminal": "여객",
+      "walk_min": null,
+      "passenger_use": true,
+      "confidence": "unverified",
+      "note": "여객터미널 주차장. 도보권으로 추정되나 소요시간 미확인"
+    },
+    {
+      "airport": "CJU",
+      "name": "P2장기주차장",
+      "terminal": "여객",
+      "walk_min": [10, 12],
+      "passenger_use": true,
+      "confidence": "user"
+    },
+    {
+      "airport": "CJU",
+      "name": "화물주차장",
+      "terminal": "화물",
+      "walk_min": null,
+      "passenger_use": false,
+      "confidence": "unverified"
+    }
+  ]
+}

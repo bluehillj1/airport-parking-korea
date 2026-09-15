@@ -1,0 +1,286 @@
+﻿-26670020256500
+한국공항공사 전국공항 주차장 혼잡도 GW
+OpenAPI 활용가이드
+개정 이력
+버 전
+| 변경일
+| 변경 사유
+| 변경 내용
+| 작성자
+| 승인
+| 제정
+| 2026-08-11
+| 제정
+| 제정
+| 김민섭
+| 김민섭
+목 차
+TOC \o "1-3" \h \z \u 1. 서비스 목록 PAGEREF _Toc529368701 \h 3
+2. 서비스 명세 PAGEREF _Toc529368702 \h 3
+2.1. 전국공항 주차장 혼잡도 PAGEREF _Toc529368703 \h 3
+가. 서비스 개요 PAGEREF _Toc529368704 \h 3
+나. 오퍼레이션 목록 PAGEREF _Toc529368705 \h 4
+서비스 목록
+순번
+| 서비스 ID
+| 서비스명(영문)
+| 서비스명(국문)
+| 1
+| parking-congestion
+| Korea Airports Corporation National Airport Parking Lot Congestion
+| 전국공항 주차장 혼잡도
+서비스 명세
+전국공항 주차장 혼잡도
+서비스 개요
+서비스
+정보
+| 서비스 ID
+| parking-congestion
+| 서비스명(국문)
+| 전국공항 주차장 혼잡도
+| 서비스명(영문)
+| Korea Airports Corporation National Airport Parking Lot Congestion
+| 서비스 설명
+| 한국공항공사가 운영하는 공항의 실시간 주차장 혼잡도 정보를 제공하며, 공항명, 주차장명, 혼잡도, 혼잡률, 입고된 차량 수, 전체 주차면 수와 업데이트 일시를 조회할 수 있는 서비스
+| 서비스
+제공자정보
+| 기관명
+| 한국공항공사
+| 담당자명
+| 김민섭
+| 담당자 연락처
+| 02-2660-4803
+| 담당자 e-Mail
+| 서비스
+보안
+| 서비스 인증/권한
+| [O] 서비스 Key [ ] 인증서 (GPKI)
+[ ] Basic (ID/PW) [ ] 없음
+| [ ] WS-Security
+| 메시지 레벨 암호화
+| [ ] 전자서명 [ ] 암호화 [O] 없음
+| 전송 레벨 암호화
+| [ ] SSL [O] 없음
+| 적용
+기술
+수준
+| 인터페이스 표준
+| [ ] SOAP 1.2
+(RPC-Encoded, Document Literal, Document Literal Wrapped)
+[O] REST (GET, POST, PUT, DELETE)
+[ ] RSS 1.0 [ ] RSS 1.0 [ ] Atom 1.0 [ ] 기타
+| 교환 데이터 표준
+| [O] XML [O] JSON [ ] MIME [ ] MTOM
+| 서비스
+URL
+| 개발환경
+| https://apis.data.go.kr/B551178/parking-congestion/
+| 운영환경
+| https://apis.data.go.kr/B551178/parking-congestion/
+| 서비스
+WADL
+| 개발환경
+| https://apis.data.go.kr/B551178/parking-congestion/info?serviceKey={ServiceKey}
+| 운영환경
+| https://apis.data.go.kr/B551178/parking-congestion/info?serviceKey={ServiceKey}
+| 서비스
+배포
+정보
+| 서비스 버전
+| 1.0
+| 서비스 시작일
+| 2026-06-05
+| 배포 일자
+| 2026-06-05
+| 서비스 이력
+| N/A
+| 메시지 교환 유형
+| [O] Request-Response [ ] Publish-Subscribe
+[ ] Fire-and-Forgot [ ] Notification
+| 메시지 로깅 수준
+| 성공
+| [O] Header [ ] Body
+| 실패
+| [O] Header [O] Body
+| 사용 제약 사항 (비고)
+| N/A
+| 데이터 갱신주기
+| N/A
+오퍼레이션 목록
+일련번호
+| 서비스명(국문)
+| 오퍼레이션명(영문)
+| 오퍼레이션명(국문)
+| 메시지명(영문)
+| 1
+| 전국공항 주차장 혼잡도
+| Real-time Nationwide Airport Parking Lot Congestion Information
+| 실시간 전국공항 주차장 혼잡도 정보
+| N/A
+실시간 전국공항 주차장 혼잡도 정보 오퍼레이션 명세
+오퍼레이션
+정보
+| 오퍼레이션 번호
+| 1
+| 오퍼레이션명(국문)
+| 실시간 전국공항 주차장 혼잡도 정보
+| 오퍼레이션 유형
+| 조회(목록)
+| 오퍼레이션명(영문)
+| Real-time Nationwide Airport Parking Lot Congestion Information
+| 오퍼레이션 설명
+| 한국공항공사가 운영하는 공항 주차장의 실시간 혼잡도 정보를 조회하며, 공항명, 주차장명, 혼잡률, 혼잡도, 입고된 차량 수, 전체 주차면 수와 업데이트 일시를 제공
+| Call Back URL
+| https://apis.data.go.kr/B551178/parking-congestion/info
+| 최대 메시지 사이즈
+| N/A
+| 평균 응답 시간
+| N/A
+| 초당 최대 트랜잭션
+| N/A
+| 호출
+메시지
+정보
+| 메시지명(영문)
+| Request
+| 메시지타입
+| 1. 변수형
+2. 변수형
+| 메시지설명
+| 1. 서비스 인증키를 입력한다.2. 페이지번호 및 한 페이지 결과 수를 필요에 따라 입력한다.3. 공항코드(schAirportCode)를 필요에 따라 입력한다.4. 응답 형식을 입력한다.
+| 선행 오퍼레이션
+| N/A
+| 응답
+메시지
+정보
+| 메시지명(영문)
+| Response
+| 메시지 타입
+| 리스트형
+| 메시지 설명
+| 조회 조건에 해당하는 실시간 전국공항 주차장 혼잡도 정보를 조회하고, 공항명, 주차장명, 혼잡률, 혼잡도, 입고 차량 수, 전체 주차면 수 및 업데이트 일시를 제공한다.
+| HTTP Method
+| [O] REST (GET, POST, PUT, DELETE)
+요청 메시지 명세
+메시지명(영문)
+/END POINT URL
+| https://apis.data.go.kr/B551178/parking-congestion/info
+| 항목명(영문)
+| 항목명(국문)
+| 항목
+크기
+| 항목
+구분
+| 샘플데이터
+| 항목설명
+| serviceKey
+| 인증키
+| 필수
+| 인증키
+| 공공데이터포털에서 받은 인증키
+| pageNo
+| 페이지번호
+| 옵션
+| 1
+| 페이지번호
+| numOfRows
+| 한 페이지 결과 수
+| 옵션
+| 10
+| 한 페이지 결과 수
+| schAirportCode
+| 공항코드
+| 옵션
+| GMP
+| 공항코드(예: GMP, PUS, CJU 등)
+| type
+| 응답 형식
+| 옵션
+| xml
+| 응답 형식(JSON &amp; XML)
+응답 메시지 명세
+메시지명(영문)
+| Response
+| 항목명(영문)
+| 항목명(국문)
+| 항목
+크기
+| 항목
+구분
+| 샘플데이터
+| 항목설명
+| resultCode
+| 결과코드
+| 필수
+| 00
+| 결과코드
+| resultMsg
+| 결과메시지
+| 필수
+| NORMAL SERVICE.
+| 결과메시지
+| airportKor
+| 공항명(국문)
+| 옵션
+| 김포국제공항
+| 공항명(국문)
+| airportEng
+| 공항명(영문)
+| 옵션
+| GIMPO INTERNATIONAL AIRPORT
+| 공항명(영문)
+| parkingAirportCodeName
+| 공항 주차장명
+| 옵션
+| 국내선 제1주차장
+| 공항 주차장명
+| parkingCongestionDegree
+| 공항 주차장 혼잡률
+| 옵션
+| 99.25%
+| 공항 주차장 혼잡률
+| parkingCongestion
+| 공항 주차장 혼잡정도
+| 옵션
+| 만차
+| 공항 주차장 혼잡정도
+| parkingOccupiedSpace
+| 입고된 차량 수
+| 옵션
+| 2262.0
+| 입고된 차량 수
+| parkingTotalSpace
+| 전체 주차면 수
+| 옵션
+| 2279.0
+| 전체 주차면 수
+| sysGetdate
+| 업데이트 일자
+| 옵션
+| 2026-08-13
+| 업데이트 일자
+| sysGettime
+| 업데이트 시간
+| 옵션
+| 16:26:03
+| 업데이트 시간
+| numOfRows
+| 한 페이지 결과 수
+| 옵션
+| 10
+| 한 페이지 결과 수
+| pageNo
+| 페이지번호
+| 옵션
+| 1
+| 페이지번호
+| totalCount
+| 전체 결과 수
+| 옵션
+| 25
+| 전체 결과 수
+요청 / 응답 메시지 예제
+REST (URL)
+| https://apis.data.go.kr/B551178/parking-congestion/info?serviceKey=인증키&amp;pageNo=1&amp;numOfRows=10&amp;schAirportCode=GMP&amp;type=xml
+| 응답 메시지
+| &lt;response&gt; &lt;script/&gt; &lt;header&gt; &lt;resultCode&gt;00&lt;/resultCode&gt; &lt;resultMsg&gt;NORMAL SERVICE.&lt;/resultMsg&gt; &lt;/header&gt; &lt;body&gt; &lt;numOfRows&gt;10&lt;/numOfRows&gt; &lt;pageNo&gt;1&lt;/pageNo&gt; &lt;totalCount&gt;25&lt;/totalCount&gt; &lt;items&gt; &lt;item&gt; &lt;airportKor&gt;김포국제공항&lt;/airportKor&gt; &lt;airportEng&gt;GIMPO INTERNATIONAL AIRPORT&lt;/airportEng&gt; &lt;parkingAirportCodeName&gt;국내선 제1주차장&lt;/parkingAirportCodeName&gt; &lt;parkingCongestionDegree&gt;99.25%&lt;/parkingCongestionDegree&gt; &lt;parkingCongestion&gt;만차&lt;/parkingCongestion&gt; &lt;parkingOccupiedSpace&gt;2262.0&lt;/parkingOccupiedSpace&gt; &lt;parkingTotalSpace&gt;2279.0&lt;/parkingTotalSpace&gt; &lt;sysGetdate&gt;2026-08-13&lt;/sysGetdate&gt; &lt;sysGettime&gt;16:26:03&lt;/sysGettime&gt; &lt;/item&gt; &lt;item&gt; &lt;airportKor&gt;김포국제공항&lt;/airportKor&gt; &lt;airportEng&gt;GIMPO INTERNATIONAL AIRPORT&lt;/airportEng&gt; &lt;parkingAirportCodeName&gt;국내선 제2주차장&lt;/parkingAirportCodeName&gt; &lt;parkingCongestionDegree&gt;91.29%&lt;/parkingCongestionDegree&gt; &lt;parkingCongestion&gt;혼잡&lt;/parkingCongestion&gt; &lt;parkingOccupiedSpace&gt;1582.0&lt;/parkingOccupiedSpace&gt; &lt;parkingTotalSpace&gt;1733.0&lt;/parkingTotalSpace&gt; &lt;sysGetdate&gt;2026-08-13&lt;/sysGetdate&gt; &lt;sysGettime&gt;16:26:03&lt;/sysGettime&gt; &lt;/item&gt; &lt;item&gt; &lt;airportKor&gt;김포국제공항&lt;/airportKor&gt; &lt;airportEng&gt;GIMPO INTERNATIONAL AIRPORT&lt;/airportEng&gt; &lt;parkingAirportCodeName&gt;국제선 주차빌딩&lt;/parkingAirportCodeName&gt; &lt;parkingCongestionDegree&gt;64.73%&lt;/parkingCongestionDegree&gt; &lt;parkingCongestion&gt;원활&lt;/parkingCongestion&gt; &lt;parkingOccupiedSpace&gt;367.0&lt;/parkingOccupiedSpace&gt; &lt;parkingTotalSpace&gt;567.0&lt;/parkingTotalSpace&gt; &lt;sysGetdate&gt;2026-08-13&lt;/sysGetdate&gt; &lt;sysGettime&gt;16:26:03&lt;/sysGettime&gt; &lt;/item&gt; &lt;item&gt; &lt;airportKor&gt;김포국제공항&lt;/airportKor&gt; &lt;airportEng&gt;GIMPO INTERNATIONAL AIRPORT&lt;/airportEng&gt; &lt;parkingAirportCodeName&gt;국제선 지하&lt;/parkingAirportCodeName&gt; &lt;parkingCongestionDegree&gt;68.45%&lt;/parkingCongestionDegree&gt; &lt;parkingCongestion&gt;원활&lt;/parkingCongestion&gt; &lt;parkingOccupiedSpace&gt;410.0&lt;/parkingOccupiedSpace&gt; &lt;parkingTotalSpace&gt;599.0&lt;/parkingTotalSpace&gt; &lt;sysGetdate&gt;2026-08-13&lt;/sysGetdate&gt; &lt;sysGettime&gt;16:26:03&lt;/sysGettime&gt; &lt;/item&gt; &lt;item&gt; &lt;airportKor&gt;김포국제공항&lt;/airportKor&gt; &lt;airportEng&gt;GIMPO INTERNATIONAL AIRPORT&lt;/airportEng&gt; &lt;parkingAirportCodeName&gt;화물청사&lt;/parkingAirportCodeName&gt; &lt;parkingCongestionDegree&gt;76.39%&lt;/parkingCongestionDegree&gt; &lt;parkingCongestion&gt;원활&lt;/parkingCongestion&gt; &lt;parkingOccupiedSpace&gt;563.0&lt;/parkingOccupiedSpace&gt; &lt;parkingTotalSpace&gt;737.0&lt;/parkingTotalSpace&gt; &lt;sysGetdate&gt;2026-08-13&lt;/sysGetdate&gt; &lt;sysGettime&gt;16:26:03&lt;/sysGettime&gt; &lt;/item&gt; &lt;item&gt; &lt;airportKor&gt;김해국제공항&lt;/airportKor&gt; &lt;airportEng&gt;GIMHAE INTERNATIONAL AIRPORT&lt;/airportEng&gt; &lt;parkingAirportCodeName&gt;P1 여객주차장&lt;/parkingAirportCodeName&gt; &lt;parkingCongestionDegree&gt;99.6%&lt;/parkingCongestionDegree&gt; &lt;parkingCongestion&gt;만차&lt;/parkingCongestion&gt; &lt;parkingOccupiedSpace&gt;1997.0&lt;/parkingOccupiedSpace&gt; &lt;parkingTotalSpace&gt;2005.0&lt;/parkingTotalSpace&gt; &lt;sysGetdate&gt;2026-08-13&lt;/sysGetdate&gt; &lt;sysGettime&gt;16:26:03&lt;/sysGettime&gt; &lt;/item&gt; &lt;item&gt; &lt;airportKor&gt;김해국제공항&lt;/airportKor&gt; &lt;airportEng&gt;GIMHAE INTERNATIONAL AIRPORT&lt;/airportEng&gt; &lt;parkingAirportCodeName&gt;P2 여객주차장&lt;/parkingAirportCodeName&gt; &lt;parkingCongestionDegree&gt;100%&lt;/parkingCongestionDegree&gt; &lt;parkingCongestion&gt;만차&lt;/parkingCongestion&gt; &lt;parkingOccupiedSpace&gt;2453.0&lt;/parkingOccupiedSpace&gt; &lt;parkingTotalSpace&gt;2453.0&lt;/parkingTotalSpace&gt; &lt;sysGetdate&gt;2026-08-13&lt;/sysGetdate&gt; &lt;sysGettime&gt;16:26:03&lt;/sysGettime&gt; &lt;/item&gt; &lt;item&gt; &lt;airportKor&gt;김해국제공항&lt;/airportKor&gt; &lt;airportEng&gt;GIMHAE INTERNATIONAL AIRPORT&lt;/airportEng&gt; &lt;parkingAirportCodeName&gt;P3 여객(화물)&lt;/parkingAirportCodeName&gt; &lt;parkingCongestionDegree&gt;100%&lt;/parkingCongestionDegree&gt; &lt;parkingCongestion&gt;만차&lt;/parkingCongestion&gt; &lt;parkingOccupiedSpace&gt;878.0&lt;/parkingOccupiedSpace&gt; &lt;parkingTotalSpace&gt;878.0&lt;/parkingTotalSpace&gt; &lt;sysGetdate&gt;2026-08-13&lt;/sysGetdate&gt; &lt;sysGettime&gt;16:26:03&lt;/sysGettime&gt; &lt;/item&gt; &lt;item&gt; &lt;airportKor&gt;제주국제공항&lt;/airportKor&gt; &lt;airportEng&gt;JEJU INTERNATIONAL AIRPORT&lt;/airportEng&gt; &lt;parkingAirportCodeName&gt;P1주차장&lt;/parkingAirportCodeName&gt; &lt;parkingCongestionDegree&gt;93.76%&lt;/parkingCongestionDegree&gt; &lt;parkingCongestion&gt;혼잡&lt;/parkingCongestion&gt; &lt;parkingOccupiedSpace&gt;1653.0&lt;/parkingOccupiedSpace&gt; &lt;parkingTotalSpace&gt;1763.0&lt;/parkingTotalSpace&gt; &lt;sysGetdate&gt;2026-08-13&lt;/sysGetdate&gt; &lt;sysGettime&gt;16:26:03&lt;/sysGettime&gt; &lt;/item&gt; &lt;item&gt; &lt;airportKor&gt;제주국제공항&lt;/airportKor&gt; &lt;airportEng&gt;JEJU INTERNATIONAL AIRPORT&lt;/airportEng&gt; &lt;parkingAirportCodeName&gt;P2장기주차장&lt;/parkingAirportCodeName&gt; &lt;parkingCongestionDegree&gt;79.3%&lt;/parkingCongestionDegree&gt; &lt;parkingCongestion&gt;원활&lt;/parkingCongestion&gt; &lt;parkingOccupiedSpace&gt;387.0&lt;/parkingOccupiedSpace&gt; &lt;parkingTotalSpace&gt;488.0&lt;/parkingTotalSpace&gt; &lt;sysGetdate&gt;2026-08-13&lt;/sysGetdate&gt; &lt;sysGettime&gt;16:26:03&lt;/sysGettime&gt; &lt;/item&gt; &lt;/items&gt; &lt;/body&gt;&lt;/response&gt;
