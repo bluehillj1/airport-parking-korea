@@ -34,7 +34,7 @@ def main() -> int:
     rows = last["rows"]
     target = [r for r in rows if r["airport"] in name_to_code]
     print(f"기준 응답: {last['polled_at']}")
-    print(f"전체 {len(rows)}건 중 대상 3개 공항 {len(target)}건\n")
+    print(f"전체 {len(rows)}건 중 대상 {len(name_to_code)}개 공항 {len(target)}건\n")
 
     missing = sorted(
         (r["airport"], r["lot"]) for r in target

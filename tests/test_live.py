@@ -42,11 +42,22 @@ def test_missing_lot_stays_visible_as_unknown(access):
 
 def test_all_passenger_lots_present_even_with_no_readings(access):
     result = build_live([], access)
-    names = {code: set(lots_of(result, code)) for code in ("GMP", "PUS", "CJU")}
+    names = {code: set(lots_of(result, code))
+             for code in ("GMP", "PUS", "CJU", "CJJ")}
     assert len(names["GMP"]) == 4      # 화물청사는 여객용이 아니라 제외
     assert len(names["PUS"]) == 3
     assert len(names["CJU"]) == 2
+    assert len(names["CJJ"]) == 4
     assert result["source_ts"] is None
+
+
+def test_cheongju_third_lot_is_listed_despite_zero_capacity(access):
+    """원천이 전체 면수를 0으로 준다(실측). 목록에서 빼면 값이 들어오기 시작해도
+    영영 보이지 않는다."""
+    result = build_live([reading("청주국제공항", "여객 제3주차장", 0, 0)], access)
+    lot = lots_of(result, "CJJ")["여객 제3주차장"]
+    assert lot["grade"] == "정보 없음"
+    assert lot["free"] is None
 
 
 def test_cargo_lots_are_excluded(access):

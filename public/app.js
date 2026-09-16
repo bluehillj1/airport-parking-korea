@@ -1,6 +1,6 @@
 'use strict';
 
-const AIRPORTS = [['GMP', '김포'], ['PUS', '김해'], ['CJU', '제주']];
+const AIRPORTS = [['GMP', '김포'], ['PUS', '김해'], ['CJU', '제주'], ['CJJ', '청주']];
 const STALE_MINUTES = 5;
 const REFRESH_MS = 60000;
 const HISTORY_MAX = 60;

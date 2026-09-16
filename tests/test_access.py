@@ -6,7 +6,9 @@ def test_maps_airport_name_to_code(access_path):
     assert access.code_for("김포국제공항") == "GMP"
     assert access.code_for("김해국제공항") == "PUS"
     assert access.code_for("제주국제공항") == "CJU"
-    assert access.code_for("청주국제공항") is None
+    assert access.code_for("청주국제공항") == "CJJ"
+    # 원천은 전국 13개 공항을 주지만 앱이 다루는 곳은 위 넷뿐이다.
+    assert access.code_for("대구국제공항") is None
 
 
 def test_passenger_lots_exclude_cargo(access_path):
@@ -17,9 +19,12 @@ def test_passenger_lots_exclude_cargo(access_path):
 
 
 def test_passenger_lot_count(access_path):
-    """설계 확정 사양: 여객 주차장 9곳."""
+    """김포 4 · 김해 3 · 제주 2 · 청주 4 = 13곳.
+
+    화물 전용(김포 화물청사, 제주 화물주차장) 2곳은 제외된다.
+    """
     access = load_access(access_path)
-    assert len(access.passenger_lots()) == 9
+    assert len(access.passenger_lots()) == 13
 
 
 def test_lot_meta_carries_access_info(access_path):
