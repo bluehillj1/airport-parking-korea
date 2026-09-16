@@ -19,7 +19,21 @@ OUT = Path(__file__).resolve().parent.parent / "public"
 BACKGROUND = (30, 64, 175)
 FOREGROUND = (255, 255, 255)
 
-SIZES = {"icon-192.png": 192, "icon-512.png": 512, "apple-touch-icon.png": 180}
+# 안드로이드 적응형 아이콘이 보장하는 영역은 캔버스의 가운데 66/108 뿐이다.
+# 즉 중심에서 반지름 0.3056 바깥은 마스크에 잘려나갈 수 있는데, 기본 P는 기둥
+# 모서리가 0.3176 까지 나간다. 마스커블용으로는 0.8배로 줄여 여백을 둔다.
+#
+# 일반 아이콘까지 줄이지는 않는다. iOS와 옛 안드로이드는 자르지 않고 그대로
+# 쓰므로, 줄이면 그쪽에서 괜히 작아 보인다.
+MASKABLE_SCALE = 0.80
+
+# 이름, 한 변, P 축소율
+ICONS = (
+    ("icon-192.png", 192, 1.0),
+    ("icon-512.png", 512, 1.0),
+    ("apple-touch-icon.png", 180, 1.0),
+    ("icon-maskable-512.png", 512, MASKABLE_SCALE),
+)
 
 
 def _in_letter_p(x: float, y: float) -> bool:
@@ -37,9 +51,15 @@ def _in_letter_p(x: float, y: float) -> bool:
     return 0.085 <= (dx * dx + dy * dy) ** 0.5 <= 0.185
 
 
-def _pixel(x: float, y: float) -> tuple[int, int, int]:
+def _pixel(x: float, y: float, scale: float) -> tuple[int, int, int]:
     # 모서리를 둥글리지 않는다. iOS는 제 방식대로 깎아내고 안드로이드도 적응형
     # 아이콘으로 마스킹하므로, 미리 둥글리면 두 번 깎여 모서리가 패인다.
+    #
+    # P를 줄일 때는 글자를 다시 그리는 대신 좌표를 가운데 기준으로 넓혀 준다.
+    # 바탕은 캔버스를 가득 채운 채 글자만 작아진다.
+    if scale != 1.0:
+        x = 0.5 + (x - 0.5) / scale
+        y = 0.5 + (y - 0.5) / scale
     return FOREGROUND if _in_letter_p(x, y) else BACKGROUND
 
 
@@ -48,13 +68,13 @@ def _chunk(kind: bytes, payload: bytes) -> bytes:
             + struct.pack(">I", zlib.crc32(kind + payload) & 0xFFFFFFFF))
 
 
-def render(size: int) -> bytes:
+def render(size: int, scale: float = 1.0) -> bytes:
     rows = bytearray()
     for row in range(size):
         rows.append(0)             # 필터 없음
         y = (row + 0.5) / size
         for column in range(size):
-            rows.extend(_pixel((column + 0.5) / size, y))
+            rows.extend(_pixel((column + 0.5) / size, y, scale))
 
     header = struct.pack(">IIBBBBB", size, size, 8, 2, 0, 0, 0)
     return (b"\x89PNG\r\n\x1a\n"
@@ -64,10 +84,11 @@ def render(size: int) -> bytes:
 
 
 def main() -> int:
-    for name, size in SIZES.items():
-        data = render(size)
+    for name, size, scale in ICONS:
+        data = render(size, scale)
         (OUT / name).write_bytes(data)
-        print(f"{name:<22} {size}x{size}  {len(data):,} bytes")
+        note = "" if scale == 1.0 else f"  P {scale:.0%}"
+        print(f"{name:<24} {size}x{size}  {len(data):,} bytes{note}")
     return 0
 
 
