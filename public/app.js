@@ -37,8 +37,12 @@ function showLogin(message) {
   if (timer !== null) { clearInterval(timer); timer = null; }
   show('app', false);
   show('login', true);
+  // 폼은 /api/parking 응답을 받은 뒤에야 나타난다. 로드 직후에만 비우면 그
+  // 청소가 지나간 다음에 자동완성이 채워 넣는다. 보이는 순간에 다시 비운다.
+  clearPassword();
+  setTimeout(() => { if (!userTypedPassword) clearPassword(); }, 300);
   document.getElementById('login-msg').textContent = message || '';
-  document.getElementById('password').focus();
+  passwordInput.focus();
 }
 
 // 비밀번호 칸은 무엇이 들어 있는지 아무도 볼 수 없다. 한/영 상태가 잘못됐든
@@ -75,8 +79,10 @@ setTimeout(() => { if (!userTypedPassword) clearPassword(); }, 400);
 // 전부 "암호가 틀렸다"로 뭉뚱그리면 설정 실수를 영원히 못 찾는다. 틀린 암호와
 // 설정 누락과 미배포는 대응이 서로 다르므로 구분해서 말한다.
 // 사용자 입력에 대해서만 모호하게 답하면 된다 — 서버는 여전히 401에 이유를 싣지 않는다.
-function loginError(status) {
-  if (status === 401) return '암호가 맞지 않습니다.';
+function loginError(status, sentLength) {
+  // 보낸 길이를 함께 보여준다. 친 글자 수와 다르면 입력칸에 내가 치지 않은 값이
+  // 섞여 있다는 뜻이고, 그건 화면에서 즉시 알아야 할 사실이다.
+  if (status === 401) return `암호가 맞지 않습니다. (보낸 길이 ${sentLength}자)`;
   if (status === 500) return '서버 환경변수가 설정되지 않았습니다. (Vercel 설정 확인)';
   if (status === 404) return 'API가 배포되지 않았습니다. (함수 빌드 확인)';
   if (status === 405) return '요청 방식 오류입니다.';
@@ -85,19 +91,19 @@ function loginError(status) {
 
 document.getElementById('login').addEventListener('submit', async (event) => {
   event.preventDefault();
-  const input = passwordInput;
   const msg = document.getElementById('login-msg');
+  const sent = passwordInput.value;
   msg.textContent = '확인 중…';
   try {
     const res = await fetch('/api/login', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ password: input.value }),
+      body: JSON.stringify({ password: sent }),
     });
     // 암호는 어디에도 남기지 않는다. 세션은 서버가 준 HttpOnly 쿠키에만 있다.
     clearPassword();
     if (!res.ok) {
-      msg.textContent = loginError(res.status);
+      msg.textContent = loginError(res.status, sent.length);
       return;
     }
     msg.textContent = '';
