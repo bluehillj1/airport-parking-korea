@@ -1,6 +1,12 @@
-:root { --bg:#fff; --fg:#111; --muted:#666; --line:#e3e3e3; --warn:#c2410c; --good:#15803d; }
+:root {
+  --bg:#fff; --fg:#111; --muted:#666; --line:#e3e3e3;
+  --chip:#f4f4f5; --warn:#c2410c; --good:#15803d;
+}
 @media (prefers-color-scheme: dark) {
-  :root { --bg:#111; --fg:#f2f2f2; --muted:#999; --line:#2c2c2c; --warn:#fb923c; --good:#4ade80; }
+  :root {
+    --bg:#111; --fg:#f2f2f2; --muted:#999; --line:#2c2c2c;
+    --chip:#1e1e20; --warn:#fb923c; --good:#4ade80;
+  }
 }
 * { box-sizing: border-box; }
 body {
@@ -36,10 +42,17 @@ header { padding:12px 16px 8px; border-bottom:1px solid var(--line); }
 #freshness.stale { color:var(--warn); font-weight:600; }
 
 .terminal { margin:16px 16px 4px; font-size:13px; color:var(--muted); }
-.lot { padding:14px 16px; border-bottom:1px solid var(--line); }
-.lot-head { display:flex; justify-content:space-between; align-items:baseline; }
-.lot-name { font-size:16px; }
-.grade { font-size:13px; padding:2px 8px; border-radius:99px; border:1px solid var(--line); }
+.lot { padding:16px; border-bottom:1px solid var(--line); }
+
+/* 주차장명이 맨 글자로 있으면 카드 경계가 흐려 어디부터 어디까지가 한 주차장인지
+   읽히지 않는다. 이름을 상자에 넣어 오른쪽 등급 배지와 짝을 이루게 한다. */
+.lot-head { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+.lot-name {
+  font-size:16px; font-weight:600;
+  padding:5px 10px; border-radius:7px;
+  background:var(--chip); border:1px solid var(--line);
+}
+.grade { font-size:13px; padding:4px 10px; border-radius:99px; border:1px solid var(--line); white-space:nowrap; }
 .grade.만차 { background:#dc2626; color:#fff; border-color:#dc2626; }
 .grade.혼잡 { background:#f59e0b; color:#111; border-color:#f59e0b; }
 .free { font-size:28px; font-weight:700; margin:6px 0 2px; }
