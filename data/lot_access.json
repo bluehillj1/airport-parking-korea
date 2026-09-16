@@ -147,37 +147,34 @@
       "airport": "CJJ",
       "name": "여객 제1주차장",
       "terminal": "여객",
-      "walk_min": null,
+      "walk_min": [5, 10],
       "passenger_use": true,
-      "confidence": "unverified",
-      "note": "여객터미널 인근. 소요시간 미확인"
+      "confidence": "user"
     },
     {
       "airport": "CJJ",
       "name": "여객 제2주차장",
       "terminal": "여객",
-      "walk_min": null,
+      "walk_min": [5, 10],
       "passenger_use": true,
-      "confidence": "unverified",
-      "note": "여객터미널 인근. 소요시간 미확인"
+      "confidence": "user"
     },
     {
       "airport": "CJJ",
       "name": "여객 제3주차장",
       "terminal": "여객",
-      "walk_min": null,
+      "walk_min": [5, 10],
       "passenger_use": true,
-      "confidence": "unverified",
+      "confidence": "user",
       "note": "2026-09-15 실측에서 전체 면수가 0으로 보고됨. 원천이 값을 주기 시작하면 자동으로 표시된다"
     },
     {
       "airport": "CJJ",
       "name": "여객 제4주차장",
       "terminal": "여객",
-      "walk_min": null,
+      "walk_min": [5, 10],
       "passenger_use": true,
-      "confidence": "unverified",
-      "note": "여객터미널 인근. 소요시간 미확인"
+      "confidence": "user"
     }
   ]
 }
