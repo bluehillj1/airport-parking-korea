@@ -1,11 +1,17 @@
+/* 이름 상자는 파랑이다. 빨강·주황·초록은 등급(만차·혼잡·여유)이 쓰고 있어서
+   같은 계열을 이름에 쓰면 상태 신호로 잘못 읽힌다. */
 :root {
   --bg:#fff; --fg:#111; --muted:#666; --line:#e3e3e3;
-  --chip:#f4f4f5; --warn:#c2410c; --good:#15803d;
+  --chip-bg:#dbeafe; --chip-line:#93c5fd; --chip-fg:#1e40af;
+  --calm-bg:#dcfce7; --calm-fg:#166534;
+  --warn:#c2410c; --good:#15803d;
 }
 @media (prefers-color-scheme: dark) {
   :root {
     --bg:#111; --fg:#f2f2f2; --muted:#999; --line:#2c2c2c;
-    --chip:#1e1e20; --warn:#fb923c; --good:#4ade80;
+    --chip-bg:#1c3454; --chip-line:#2f5b96; --chip-fg:#bfdbfe;
+    --calm-bg:#14311f; --calm-fg:#86efac;
+    --warn:#fb923c; --good:#4ade80;
   }
 }
 * { box-sizing: border-box; }
@@ -50,11 +56,15 @@ header { padding:12px 16px 8px; border-bottom:1px solid var(--line); }
 .lot-name {
   font-size:16px; font-weight:600;
   padding:5px 10px; border-radius:7px;
-  background:var(--chip); border:1px solid var(--line);
+  background:var(--chip-bg); border:1px solid var(--chip-line);
+  color:var(--chip-fg);
 }
 .grade { font-size:13px; padding:4px 10px; border-radius:99px; border:1px solid var(--line); white-space:nowrap; }
-.grade.만차 { background:#dc2626; color:#fff; border-color:#dc2626; }
+/* 4단계가 한눈에 읽혀야 한다 — 여유(초록) 보통(회색) 혼잡(주황) 만차(빨강).
+   여유는 옅게 둔다. 진하면 경고색과 주목도를 다투게 된다. */
+.grade.여유 { background:var(--calm-bg); color:var(--calm-fg); border-color:var(--calm-bg); }
 .grade.혼잡 { background:#f59e0b; color:#111; border-color:#f59e0b; }
+.grade.만차 { background:#dc2626; color:#fff; border-color:#dc2626; }
 .free { font-size:28px; font-weight:700; margin:6px 0 2px; }
 /* 빈 면수가 헤드라인이지만, 전체 면수는 규모를 가늠하는 값이라 읽히지 않으면
    병기한 의미가 없다. 본문(16px)에 가깝게 둔다. */
