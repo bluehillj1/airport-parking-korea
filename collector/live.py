@@ -41,7 +41,11 @@ def build_live(
             total = occupied = free = None
             lot_grade = UNKNOWN
         else:
-            total, occupied = reading.total, reading.stay
+            # 원천은 점유율이 100%에 닿으면 카운터를 고정하는데, 고정되기 직전에
+            # 정원을 넘겨 보고하는 일이 있다. 그대로 흘려보내면 화면에 '-5면'과
+            # '104% 사용'이 찍히고, 음수가 공항 합계까지 오염시킨다.
+            total = reading.total
+            occupied = min(reading.stay, total)
             free = total - occupied
             lot_grade = grade(free, total)
 

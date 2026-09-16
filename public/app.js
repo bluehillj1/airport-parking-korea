@@ -381,14 +381,26 @@ function lotCard(lot, shuttle, points) {
 // 여유로운가'부터 알 수 있어야 한다.
 function renderSummary(airport) {
   const el = document.getElementById('summary');
-  const known = (airport ? airport.lots : []).filter(isKnown);
+  const lots = airport && Array.isArray(airport.lots) ? airport.lots : [];
+  const known = lots.filter(isKnown);
   if (!known.length) {
     el.textContent = '';
     return;
   }
-  const free = known.reduce((sum, lot) => sum + lot.free, 0);
-  const total = known.reduce((sum, lot) => sum + lot.total, 0);
-  el.textContent = `주차장 ${airport.lots.length}곳 · 빈자리 `
+  // total 은 isKnown 이 확인하지 않는 필드다. 서버가 free 와 함께 채우는 것이
+  // 지금의 약속이지만, 어긋나는 순간 화면에서 가장 큰 줄이 'NaN면'이 된다.
+  let free = 0;
+  let total = 0;
+  for (const lot of known) {
+    free += lot.free;
+    total += lot.total || 0;
+  }
+  // 집계에서 빠진 주차장이 있으면 그 사실을 적는다. '4곳'이라 써놓고 3곳의
+  // 정원만 더하면 공항 전체 규모를 잘못 읽게 된다 — 청주가 지금 그렇다.
+  const scope = known.length === lots.length
+    ? `주차장 ${lots.length}곳`
+    : `주차장 ${lots.length}곳 중 ${known.length}곳`;
+  el.textContent = `${scope} · 빈자리 `
     + `${free.toLocaleString('ko-KR')}면 / ${total.toLocaleString('ko-KR')}면`;
 }
 

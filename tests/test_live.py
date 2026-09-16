@@ -60,6 +60,18 @@ def test_cheongju_third_lot_is_listed_despite_zero_capacity(access):
     assert lot["free"] is None
 
 
+def test_overfull_reading_never_yields_negative_free(access):
+    """원천이 정원을 넘겨 보고해도 화면에 '-5면'이나 '104% 사용'이 가면 안 된다.
+
+    음수 free는 카드 한 장에서 끝나지 않고 공항 전체 합계까지 끌어내린다.
+    """
+    result = build_live([reading("김포국제공항", "국내선 제1주차장", 2279, 2284)], access)
+    lot = lots_of(result, "GMP")["국내선 제1주차장"]
+    assert lot["free"] == 0
+    assert lot["occupied"] == lot["total"] == 2279
+    assert lot["grade"] == "만차"
+
+
 def test_cargo_lots_are_excluded(access):
     result = build_live([reading("김포국제공항", "화물청사", 100, 10)], access)
     assert "화물청사" not in lots_of(result, "GMP")

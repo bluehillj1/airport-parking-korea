@@ -74,6 +74,9 @@ main { padding:14px 16px 28px; display:flex; flex-direction:column; gap:10px; }
   background:var(--surface); border:1px solid var(--line);
 }
 .lot.calm    { --accent:#16a34a; background:#f0fdf4; border-color:#bbf7d0; }
+/* 보통은 네 단계 중 가운데다. 색을 주지 않으면 회색으로 떨어져 '정보 없음'과
+   구별되지 않는데, 자리가 있다는 뜻과 값을 못 받았다는 뜻은 정반대다. */
+.lot.ok      { --accent:#d97706; background:#fffbeb; border-color:#fde68a; }
 .lot.busy    { --accent:#ea580c; background:#fff7ed; border-color:#fed7aa; }
 /* 만차 바탕만 한 단계 옅게. 점·글자·막대의 빨강은 그대로 두어 신호는 죽이지
    않는다 — 옅어진 것은 바탕이지 경고가 아니다. */
@@ -81,6 +84,7 @@ main { padding:14px 16px 28px; display:flex; flex-direction:column; gap:10px; }
 .lot.unknown { --accent:#a1a1aa; background:var(--surface); border-style:dashed; }
 @media (prefers-color-scheme: dark) {
   .lot.calm    { --accent:#4ade80; background:#0f2418; border-color:#1f4d31; }
+  .lot.ok      { --accent:#fbbf24; background:#241e0c; border-color:#4d4019; }
   .lot.busy    { --accent:#fb923c; background:#2a1c0e; border-color:#59371a; }
   .lot.full    { --accent:#f87171; background:#211416; border-color:#4a2023; }
   .lot.unknown { --accent:#71717a; }
