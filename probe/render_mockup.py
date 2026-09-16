@@ -12,9 +12,20 @@ from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from collector.grading import grade  # noqa: E402
+
 LOG = ROOT / "probe/refresh_log.jsonl"
 SPARK = "▁▂▃▄▅▆▇█"
 WIDTH = 46
+
+
+def clock(iso: str) -> str:
+    """앱과 같은 표기. "18:20"이 아니라 "오후 6:20"이다."""
+    hour, minute = int(iso[11:13]), iso[14:16]
+    return f"{'오전' if hour < 12 else '오후'} {hour % 12 or 12}:{minute}"
 
 
 def load():
@@ -35,17 +46,6 @@ def load():
                 snap[f"{code}|{row['lot']}"] = (row["stay"], row["total"])
         snapshots[rec["src_ts"]] = snap
     return meta, snapshots
-
-
-def grade(free: int, pct: float) -> str:
-    """면수와 비율을 함께 본다. 작은 주차장이 비율만으로 여유해 보이는 걸 막는다."""
-    if free <= 0:
-        return "만차"
-    if free <= 30 or pct >= 95:
-        return "혼잡"
-    if pct >= 80:
-        return "보통"
-    return "여유"
 
 
 def sparkline(values: list[int], total: int) -> str:
@@ -73,7 +73,7 @@ def access_label(lot: dict, shuttle: dict | None) -> str:
         return "셔틀 이용"
     if lot.get("walk_min"):
         lo, hi = lot["walk_min"]
-        return f"도보 {lo}~{hi}분"
+        return f"도보 {lo}분" if lo == hi else f"도보 {lo}~{hi}분"
     return "도보권"
 
 
@@ -82,14 +82,23 @@ def render(meta, snapshots) -> None:
     latest, first = stamps[-1], stamps[0]
     span = (datetime.fromisoformat(latest) - datetime.fromisoformat(first)).total_seconds() / 60
 
+    # 탭 줄을 손으로 적어두면 공항이 늘 때마다 잊는다 — 청주를 넣고도 한동안
+    # "김포 김해 제주"라고 적혀 있었다. 메타데이터에서 만든다.
+    def short(name: str) -> str:
+        return name.replace("국제공항", "").replace("공항", "")
+
+    served = {l["airport"] for l in meta["lots"] if l["passenger_use"]}
+    tabs = " ".join(short(a["name_kor"])
+                    for code, a in meta["airports"].items() if code in served)
+
     for code, airport in meta["airports"].items():
         lots = [l for l in meta["lots"] if l["airport"] == code and l["passenger_use"]]
         if not lots:
             continue
 
         print("┌" + "─" * WIDTH + "┐")
-        print(f"│ {airport['name_kor']:<{WIDTH - 12}}{'김포 김해 제주':>9} │")
-        print(f"│ {'방금 전 정보 · ' + latest[11:16]:<{WIDTH - 2}} │")
+        print(f"│ {airport['name_kor']:<{WIDTH - 2 - len(tabs)}}{tabs} │")
+        print(f"│ {clock(latest) + ' 기준':<{WIDTH - 2}} │")
 
         # 청사별로 묶는다. 청사가 다르면 셔틀을 타야 하므로 같은 줄에 세우면 안 된다.
         for terminal in dict.fromkeys(l["terminal"] for l in lots):
@@ -102,8 +111,7 @@ def render(meta, snapshots) -> None:
                     continue
                 stay, total = snapshots[latest][key]
                 free = total - stay
-                pct = stay / total * 100
-                rows.append((lot, free, pct, stay - series[0], series, total))
+                rows.append((lot, free, stay - series[0], series, total))
             if not rows:
                 continue
             # 접근성이 먼저다. 도보권이 비어 있으면 셔틀 주차장은 볼 이유가 없고,
@@ -116,8 +124,8 @@ def render(meta, snapshots) -> None:
                 tag = f"  ({airport['shuttle']['name'] if need else '도보 이동'})" if need else ""
                 print(f"│ ■ {terminal + '청사' + tag:<{WIDTH - 4}} │")
 
-            for lot, free, pct, delta, series, total in rows:
-                g = grade(free, pct)
+            for lot, free, delta, series, total in rows:
+                g = grade(free, total)
                 print(f"│ {lot['name']:<{WIDTH - 12}}{g:>7} │")
                 print(f"│   {str(free) + '면':<8}{access_label(lot, airport.get('shuttle')):<{WIDTH - 13}} │")
                 if g == "만차":
@@ -126,7 +134,8 @@ def render(meta, snapshots) -> None:
                     # 규모 대비 미미한 변화는 방향을 단정하지 않는다
                     significant = abs(delta) >= max(3, total * 0.01)
                     arrow = ("↗" if delta > 0 else "↘") if significant else "→"
-                    trend = f"{arrow} {span:.0f}분 {delta:+d}대" if significant else "→ 큰 변화 없음"
+                    trend = (f"{arrow} {span:.0f}분 {delta:+d}대" if significant
+                             else f"{span:.0f}분간 큰 변화 없음")
                     note = f"{sparkline(series[-14:], total)}  {trend}"
                 print(f"│   {note:<{WIDTH - 5}} │")
         print("└" + "─" * WIDTH + "┘\n")

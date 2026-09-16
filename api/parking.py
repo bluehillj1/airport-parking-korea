@@ -88,6 +88,12 @@ class handler(BaseHTTPRequestHandler):
                   f"check includeFiles in vercel.json", file=sys.stderr)
             self._json(500, {"error": "server misconfigured"})
             return
+        except ValueError as exc:
+            # 파일은 있는데 내용이 어긋난다. 검증을 두지 않으면 이 오류가
+            # build_live 안에서 KeyError 로 터져 스택트레이스만 남는다.
+            print(f"lot_access.json invalid: {exc}", file=sys.stderr)
+            self._json(500, {"error": "server misconfigured"})
+            return
 
         now = time.time()
         if _cache["body"] is not None and now - _cache["at"] < CACHE_SECONDS:

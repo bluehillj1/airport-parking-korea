@@ -26,7 +26,7 @@ collector/         공유 로직 — api(호출·파싱) auth(인증) grading(�
 data/              주차장별 도보·셔틀 접근성 (API로 오지 않는 정적 정보)
 public/            웹앱. 빌드 도구 없음
 probe/             갱신주기·변화량 실측 도구. 앱 코드가 아니다
-tools/             암호 해시 생성기 (로컬 전용)
+tools/             암호 해시 생성기·홈 화면 아이콘 생성기 (로컬 전용)
 ```
 
 ## 왜 서울 리전인가
@@ -114,8 +114,9 @@ python tools/check_password.py
 ## 로컬 개발
 
 ```
-python -m pytest -q          # 86개
+python -m pytest -q          # 98개
 python probe/check_join.py   # 주차장명 조인이 깨지지 않았는지
+python tools/make_icons.py   # 홈 화면 아이콘 4장 (브랜드 색을 바꿨을 때만)
 ```
 
 `probe/`는 서비스키가 필요하다. `probe/.env.example`을 `probe/.env`로 복사해 채운다. `.env`는 `.gitignore`로 제외되며, **`.env.example`은 커밋되는 템플릿이므로 실제 키를 넣지 않는다.**
