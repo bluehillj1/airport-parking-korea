@@ -10,7 +10,7 @@ from datetime import datetime, timedelta, timezone
 
 from collector.access import Access
 from collector.api import LotReading
-from collector.grading import UNKNOWN, grade
+from collector.grading import UNKNOWN, grade, key_for
 
 KST = timezone(timedelta(hours=9))
 
@@ -60,6 +60,9 @@ def build_live(
             "occupied": occupied,
             "free": free,
             "grade": lot_grade,
+            # 앱은 이 토큰으로 색을 고른다. 등급 문자열에서 앱이 직접 만들게
+            # 두면 규칙이 두 곳으로 갈라진다.
+            "grade_key": key_for(lot_grade),
             "access": {
                 "walk_min": meta.get("walk_min"),
                 "requires_shuttle": bool(meta.get("requires_shuttle")),

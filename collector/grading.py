@@ -11,6 +11,25 @@ from __future__ import annotations
 
 UNKNOWN = "정보 없음"
 
+# 표시 문자열과 기계용 토큰을 한자리에 둔다.
+#
+# 등급 문자열을 그대로 CSS 클래스로 쓰면 '정보 없음'의 공백에서 classList가
+# 터진다. 그렇다고 앱 쪽에 같은 표를 하나 더 두면, 여기서 등급을 고치거나
+# 늘릴 때 앱은 아무 말 없이 회색으로 떨어진다 — 실제로 '보통'이 그랬다.
+# 토큰을 등급과 같은 자리에서 정의하고 서버가 함께 실어 보낸다.
+KEYS = {
+    "여유": "calm",
+    "보통": "ok",
+    "혼잡": "busy",
+    "만차": "full",
+    UNKNOWN: "unknown",
+}
+
+
+def key_for(grade_text: str) -> str:
+    """등급 문자열에 대응하는 CSS 토큰. 모르는 등급은 '정보 없음'과 같이 다룬다."""
+    return KEYS.get(grade_text, KEYS[UNKNOWN])
+
 
 def grade(free: int, total: int) -> str:
     """면수와 비율을 함께 본다.

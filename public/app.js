@@ -22,23 +22,30 @@ function sourceEpoch(sourceTs) {
   return Number.isNaN(t) ? null : t;
 }
 
-function minutesSince(sourceTs) {
-  const t = sourceEpoch(sourceTs);
-  return t === null ? null : Math.floor((Date.now() - t) / 60000);
-}
+// 시:분은 서울 기준으로 뽑는다. 휴대폰 시간대가 무엇이든 같은 시각이 찍혀야
+// 한다 — 국내 공항이므로 한국시간이 맞다.
+//
+// 한때는 원천 문자열에서 정규식으로 떼어냈다. 그러면 같은 값을 경과 시간 계산과
+// 서로 다른 규칙으로 두 번 파싱하게 되고, 원천이 "2026-09-15T10:13"처럼
+// 공백 없는 형식으로 바뀌는 날 한쪽만 실패한다. 그날 화면은 멀쩡한 데이터를
+// 두고 "불러오지 못했다"고 말한다. 파서는 sourceEpoch 하나뿐이어야 한다.
+//
+// 한글은 직접 붙인다. 로케일에 맡기면 ICU가 축소된 환경에서 "PM 6:20"이 나온다.
+const KST_CLOCK = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+});
 
-// 원천 문자열에서 시:분을 그대로 떼어낸다. Date로 바꿔 시각을 뽑으면 휴대폰
-// 시간대 설정에 따라 다른 시각이 찍힌다 — 국내 공항이므로 한국시간이 맞다.
-// 표기는 24시간제가 아니라 사람이 말하는 방식으로 한다. "18:20"보다 "오후 6:20".
-function sourceClock(sourceTs) {
-  const matched = /\s(\d{1,2}):(\d{2})/.exec(String(sourceTs || ''));
-  if (!matched) return null;
-  const hour = Number(matched[1]);
+function clockAt(epoch) {
+  const parts = {};
+  for (const part of KST_CLOCK.formatToParts(new Date(epoch))) {
+    parts[part.type] = part.value;
+  }
+  const hour = Number(parts.hour);
   if (!Number.isInteger(hour) || hour < 0 || hour > 23) return null;
   const meridiem = hour < 12 ? '오전' : '오후';
   // 0시는 오전 12시, 12시는 오후 12시다.
   const twelve = hour % 12 === 0 ? 12 : hour % 12;
-  return `${meridiem} ${twelve}:${matched[2]}`;
+  return `${meridiem} ${twelve}:${parts.minute}`;
 }
 
 function show(id, visible) {
@@ -187,13 +194,14 @@ function renderFreshness(error) {
     el.classList.add('stale');
     return;
   }
-  const mins = data ? minutesSince(data.source_ts) : null;
-  const time = sourceClock(data && data.source_ts);
-  if (mins === null || time === null) {
+  const at = sourceEpoch(data && data.source_ts);
+  const time = at === null ? null : clockAt(at);
+  if (time === null) {
     el.textContent = '정보를 불러오지 못했습니다';
     el.classList.add('stale');
     return;
   }
+  const mins = Math.floor((Date.now() - at) / 60000);
   let text = `${time} 기준`;
   const stale = mins >= STALE_MINUTES;
   // 평소에는 시각만 보여주고, 멈췄을 때만 얼마나 오래됐는지 말한다.
@@ -268,7 +276,7 @@ function accessLabel(lot, shuttle) {
 function trendInfo(lot, points) {
   if (!isKnown(lot)) return { text: '정보를 받지 못했습니다', tone: 'flat' };
   // 원천 카운터가 100%에서 고정되므로 만차 주차장의 증감은 의미가 없다.
-  if (lot.grade === '만차') return { text: '만차 — 입출차 정보 없음', tone: 'flat' };
+  if (isFull(lot)) return { text: '만차 — 입출차 정보 없음', tone: 'flat' };
 
   const t = computeTrend(points, lot.total);
   if (!t) return { text: '잠시 열어두면 변화가 보입니다', tone: 'flat' };
@@ -282,8 +290,8 @@ function trendInfo(lot, points) {
 // 안에서는 빈자리가 많은 순. 미상 주차장은 순위를 명시해 null 연산이 NaN으로
 // 새어들어 정렬을 조용히 망가뜨리는 일을 막는다.
 function lotRank(lot) {
-  if (!isKnown(lot) || lot.grade === '정보 없음') return 3;
-  if (lot.grade === '만차') return 2;
+  if (!isKnown(lot) || gradeClass(lot) === 'unknown') return 3;
+  if (isFull(lot)) return 2;
   return lot.access && lot.access.requires_shuttle ? 1 : 0;
 }
 
@@ -299,20 +307,21 @@ function sortLots(lots) {
   });
 }
 
-// classList 는 공백이 든 토큰을 거부한다. '정보 없음'을 그대로 넣으면 예외가 나
-// 그 카드부터 목록이 통째로 그려지지 않는다 — 하필 API가 불안정할 때 터진다.
-const GRADE_CLASS = {
-  '여유': 'calm', '보통': 'ok', '혼잡': 'busy', '만차': 'full', '정보 없음': 'unknown',
-};
+// 등급 토큰은 서버가 정한다(collector/grading.py 의 KEYS). 등급 문자열을 그대로
+// classList에 넣으면 '정보 없음'의 공백에서 예외가 나 그 카드부터 목록이 통째로
+// 그려지지 않고, 여기서 표로 다시 옮기면 파이썬 쪽이 바뀔 때 조용히 어긋난다.
+function gradeClass(lot) {
+  return (lot && lot.grade_key) || 'unknown';
+}
 
-function gradeClass(grade) {
-  return GRADE_CLASS[grade] || 'unknown';
+function isFull(lot) {
+  return gradeClass(lot) === 'full';
 }
 
 function lotCard(lot, shuttle, points) {
-  const g = lot.grade || '정보 없음';
+  const token = gradeClass(lot);
   const card = document.createElement('section');
-  card.className = `lot ${gradeClass(g)}`;
+  card.className = `lot ${token}`;
 
   const head = document.createElement('div');
   head.className = 'lot-head';
@@ -320,8 +329,8 @@ function lotCard(lot, shuttle, points) {
   name.className = 'lot-name';
   name.textContent = lot.name === null || lot.name === undefined ? '이름 없음' : lot.name;
   const grade = document.createElement('span');
-  grade.className = `grade ${gradeClass(g)}`;
-  grade.textContent = g;
+  grade.className = `grade ${token}`;
+  grade.textContent = lot.grade || '정보 없음';
   head.appendChild(name);
   head.appendChild(grade);
   card.appendChild(head);
@@ -354,7 +363,7 @@ function lotCard(lot, shuttle, points) {
   const info = trendInfo(lot, points);
   const trend = document.createElement('p');
   trend.className = `trend ${info.tone}`;
-  const spark = lot.grade === '만차' ? '' : sparkline(points, lot.total);
+  const spark = isFull(lot) ? '' : sparkline(points, lot.total);
   if (spark) {
     const s = document.createElement('span');
     s.className = 'spark';
