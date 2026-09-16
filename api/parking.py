@@ -23,7 +23,13 @@ if ROOT not in sys.path:
 
 from collector.access import load_access          # noqa: E402
 from collector.api import ApiError, fetch         # noqa: E402
-from collector.auth import token_from_cookie, verify_token  # noqa: E402
+from collector.auth import (  # noqa: E402
+    issue_token,
+    needs_renewal,
+    set_cookie_header,
+    token_from_cookie,
+    verify_token,
+)
 from collector.live import build_live             # noqa: E402
 
 ACCESS_PATH = os.path.join(ROOT, "data", "lot_access.json")
@@ -50,11 +56,22 @@ def _access_data():
 
 
 class handler(BaseHTTPRequestHandler):
+    # 이 요청에 실어 보낼 새 쿠키. 갱신할 것이 없으면 None으로 남는다.
+    _cookie: str | None = None
+
     def do_GET(self):
-        if not verify_token(token_from_cookie(self.headers.get("Cookie")),
-                            os.environ.get("SESSION_SECRET", "")):
+        token = token_from_cookie(self.headers.get("Cookie"))
+        secret = os.environ.get("SESSION_SECRET", "")
+        if not verify_token(token, secret):
             self._json(401, {"error": "unauthorized"})
             return
+
+        # 앱을 여는 것만으로 세션이 연장된다. 차 안에서 급히 여는 앱이라 만료는
+        # 곧 실패이므로, 만료를 기다렸다가 로그인시키는 대신 미리 밀어둔다.
+        # 아래 어느 경로로 끝나든(502·500 포함) 쿠키는 함께 나간다 — 세션의
+        # 유효함은 원천 API의 건강과 아무 상관이 없다.
+        if needs_renewal(token, secret):
+            self._cookie = set_cookie_header(issue_token(secret))
 
         service_key = os.environ.get("KAC_SERVICE_KEY", "").strip()
         if not service_key:
@@ -95,5 +112,7 @@ class handler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(raw)))
         self.send_header("Cache-Control", "no-store")
+        if self._cookie:
+            self.send_header("Set-Cookie", self._cookie)
         self.end_headers()
         self.wfile.write(raw)

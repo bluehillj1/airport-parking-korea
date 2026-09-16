@@ -4,15 +4,19 @@ import pytest
 
 from collector.auth import (
     COOKIE_NAME,
+    SESSION_DAYS,
     describe_encoded,
     fingerprint,
     hash_password,
     issue_token,
+    needs_renewal,
     set_cookie_header,
     token_from_cookie,
     verify_password,
     verify_token,
 )
+
+DAY = 86400
 
 # 실제 반복수는 60만이라 테스트가 느려진다. 알고리즘 검증에는 무관한 값이다.
 FAST = 1000
@@ -146,6 +150,70 @@ def test_empty_secret_never_authorizes():
 @pytest.mark.parametrize("token", ["", None, "형식이없음", "a.b.c", "!!!.???"])
 def test_malformed_token_rejected(token):
     assert verify_token(token, SECRET) is False
+
+
+def test_session_stays_under_the_browser_cookie_cap():
+    """크롬·엣지는 쿠키 수명을 400일에서 자른다.
+
+    상한을 넘겨 적으면 서버가 약속한 기간과 브라우저가 지키는 기간이 갈라지고,
+    그 차이는 사용자가 예고 없이 로그아웃될 때에야 드러난다. 적은 값이 곧
+    실제 값이어야 한다.
+    """
+    assert SESSION_DAYS < 400
+    max_age = int(set_cookie_header("sometoken").split("Max-Age=")[1].split(";")[0])
+    assert max_age == SESSION_DAYS * DAY
+
+
+def test_fresh_token_is_not_renewed():
+    """막 발급한 세션까지 갱신하면 요청마다 Set-Cookie가 붙는다."""
+    now = time.time()
+    assert needs_renewal(issue_token(SECRET, now=now), SECRET, now=now) is False
+
+
+def test_token_past_halfway_is_renewed():
+    issued = time.time()
+    token = issue_token(SECRET, now=issued)
+    assert needs_renewal(token, SECRET, now=issued + 200 * DAY) is True
+
+
+def test_renewal_pushes_the_expiry_further_out():
+    """갱신의 값어치는 만료가 실제로 밀려나는 데 있다."""
+    issued = time.time()
+    old = issue_token(SECRET, now=issued)
+    new = issue_token(SECRET, now=issued + 200 * DAY)
+    assert int(new.partition(".")[0]) > int(old.partition(".")[0])
+    assert verify_token(new, SECRET, now=issued + 400 * DAY) is True
+
+
+def test_legacy_long_token_is_renewed_on_sight():
+    """옛 정책(1825일)으로 발급된 토큰은 첫 요청에 지금 정책으로 갈아탄다.
+
+    브라우저는 그 쿠키를 이미 400일로 잘라 두었는데 토큰 만료는 5년 뒤라,
+    절반 규칙만으로는 갱신이 걸리기 전에 쿠키가 먼저 사라진다.
+    """
+    now = time.time()
+    legacy = issue_token(SECRET, now=now, days=1825)
+    assert verify_token(legacy, SECRET, now=now) is True
+    assert needs_renewal(legacy, SECRET, now=now) is True
+
+
+def test_expired_token_is_never_renewed():
+    """만료된 세션을 연장해 주면 만료가 아무 의미도 없어진다."""
+    issued = time.time()
+    token = issue_token(SECRET, now=issued)
+    later = issued + (SESSION_DAYS + 1) * DAY
+    assert verify_token(token, SECRET, now=later) is False
+    assert needs_renewal(token, SECRET, now=later) is False
+
+
+@pytest.mark.parametrize("token", ["", None, "형식이없음", "a.b.c", "!!!.???"])
+def test_forged_token_is_never_renewed(token):
+    """갱신은 검증을 건너뛰는 뒷문이 되면 안 된다."""
+    assert needs_renewal(token, SECRET) is False
+
+
+def test_renewal_requires_a_secret():
+    assert needs_renewal(issue_token(SECRET), "") is False
 
 
 def test_cookie_is_httponly_and_secure():

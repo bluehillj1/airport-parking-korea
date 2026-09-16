@@ -25,15 +25,18 @@ ALGORITHM = "pbkdf2_sha256"
 ITERATIONS = 600_000
 COOKIE_NAME = "aps"
 
-# 5년. 차 안에서 급히 여는 앱이라 로그인 화면이 뜨는 것 자체가 실패에 가깝다.
+# 1년. 차 안에서 급히 여는 앱이라 로그인 화면이 뜨는 것 자체가 실패에 가깝다.
 #
-# 다만 브라우저가 쿠키 수명을 자체적으로 자른다 — 크롬·엣지는 400일이 상한이라
-# 실제로는 13개월쯤마다 한 번 다시 로그인하게 된다. 토큰 자체는 5년간 유효하니
-# 서버가 거부하는 것이 아니라 브라우저가 쿠키를 버리는 것이다.
+# 전에는 5년(1825일)이었지만 지켜지지 않는 약속이었다. 크롬·엣지는 쿠키 수명을
+# 400일에서 자르므로 서버가 5년을 적어 보내도 브라우저가 13개월 만에 버렸다.
+# 400일 아래로 내려 두면 적은 값과 실제 값이 같아진다.
 #
-# 세션이 길면 기기를 잃었을 때가 문제인데, 그때는 SESSION_SECRET 을 바꾸면
-# 발급된 모든 세션이 한 번에 끊긴다.
-SESSION_DAYS = 1825
+# 짧아진 만큼은 갱신으로 메운다 — 요청이 올 때마다 남은 수명을 보고 절반 아래로
+# 내려갔으면 쿠키를 새로 내린다(needs_renewal). 앱을 쓰는 한 만료가 오지 않고,
+# 1년 넘게 손대지 않았을 때만 한 번 다시 로그인한다.
+#
+# 기기를 잃었을 때는 SESSION_SECRET 을 바꾸면 발급된 모든 세션이 한 번에 끊긴다.
+SESSION_DAYS = 365
 
 
 def _b64e(raw: bytes) -> str:
@@ -132,30 +135,70 @@ def issue_token(secret: str, *, now: float | None = None,
     return f"{payload}.{_b64e(_sign(payload, secret))}"
 
 
-def verify_token(token: str, secret: str, *, now: float | None = None) -> bool:
-    """서명이 맞고 아직 만료되지 않았을 때만 True.
+def _signed_expiry(token: str, secret: str) -> int | None:
+    """서명이 맞는 토큰의 만료시각. 아니면 None.
 
-    secret이 비어 있으면 무조건 거부한다. 환경변수 누락이 '아무 토큰이나 통과'
+    만료 여부는 여기서 보지 않는다 — 판단은 부르는 쪽 몫이다. 갱신 여부를
+    따지려면 '서명은 맞는데 언제까지인가'를 알아야 하는데, 통과·거부만 돌려주는
+    함수로는 그 값을 꺼낼 수 없다.
+
+    secret이 비어 있으면 무조건 None이다. 환경변수 누락이 '아무 토큰이나 통과'
     로 이어지면 안 된다.
     """
     if not token or not secret:
-        return False
+        return None
     try:
         payload, separator, signature_b64 = token.partition(".")
         if not separator:
-            return False
+            return None
         signature = _b64d(signature_b64)
     except (AttributeError, ValueError, binascii.Error):
-        return False
+        return None
 
     if not hmac.compare_digest(signature, _sign(payload, secret)):
-        return False
+        return None
 
     try:
-        expires = int(payload)
+        return int(payload)
     except ValueError:
+        return None
+
+
+def verify_token(token: str, secret: str, *, now: float | None = None) -> bool:
+    """서명이 맞고 아직 만료되지 않았을 때만 True."""
+    expires = _signed_expiry(token, secret)
+    if expires is None:
         return False
     return expires > (time.time() if now is None else now)
+
+
+def needs_renewal(token: str, secret: str, *, now: float | None = None,
+                  days: int = SESSION_DAYS) -> bool:
+    """남은 수명이 지금 정책의 창을 벗어났으면 True.
+
+    두 방향 모두 갱신 대상이다.
+
+    절반 아래로 내려간 경우 — 요청마다 쿠키를 다시 내리면 60초 주기의 갱신
+    요청마다 Set-Cookie가 붙는다. 절반을 기준으로 두면 갱신은 반년에 한 번쯤
+    일어나면서도, 앱을 쓰는 한 만료가 계속 밀려나 로그인 화면을 다시 보지 않는다.
+
+    창보다 긴 경우 — 옛 정책(1825일)으로 발급된 토큰이다. 브라우저는 그 쿠키를
+    이미 400일로 잘라 두었는데 토큰의 만료는 5년 뒤라, 가만두면 절반 규칙이
+    걸리기 한참 전에 브라우저가 쿠키를 버린다. 첫 요청에 지금 정책으로 다시
+    발급해 그 어긋남을 없앤다.
+
+    이미 만료된 토큰은 갱신하지 않는다. 만료된 세션을 연장해 주면 만료가 아무
+    의미도 없어진다.
+    """
+    expires = _signed_expiry(token, secret)
+    if expires is None:
+        return False
+    now = time.time() if now is None else now
+    if expires <= now:
+        return False
+    window = days * 86400
+    remaining = expires - now
+    return remaining < window / 2 or remaining > window
 
 
 def set_cookie_header(token: str, *, days: int = SESSION_DAYS) -> str:
