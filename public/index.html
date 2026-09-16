@@ -5,6 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
 <title>공항 주차장</title>
+
+<!-- 홈 화면에 추가하면 주소창 없이 앱처럼 열린다. 아이폰은 manifest 대신
+     apple- 접두사 메타를 보므로 양쪽을 다 둔다. -->
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="공항주차장">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#1e40af">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#111111">
+
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
