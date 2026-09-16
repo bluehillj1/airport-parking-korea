@@ -17,12 +17,17 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from collector.auth import describe_encoded, verify_password  # noqa: E402
+from collector.auth import (  # noqa: E402
+    describe_encoded,
+    fingerprint,
+    verify_password,
+)
 
 
 def main() -> int:
     encoded = input("APP_PASSWORD_HASH 값을 붙여넣으세요: ").strip()
     print(f"  형태: {describe_encoded(encoded)}")
+    print(f"  지문: fp={fingerprint(encoded)}   ← 서버 로그의 fp 와 같아야 합니다")
     if "algo_ok=True" not in describe_encoded(encoded):
         print("\n해시 형식이 아닙니다. pbkdf2_sha256$ 로 시작하는 값이어야 합니다.",
               file=sys.stderr)

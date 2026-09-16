@@ -5,6 +5,7 @@ import pytest
 from collector.auth import (
     COOKIE_NAME,
     describe_encoded,
+    fingerprint,
     hash_password,
     issue_token,
     set_cookie_header,
@@ -76,6 +77,24 @@ def test_describe_reports_shape_of_a_healthy_hash():
 ])
 def test_describe_names_the_defect(encoded, expected):
     assert expected in describe_encoded(encoded)
+
+
+def test_fingerprint_distinguishes_two_valid_hashes():
+    """형태만 보면 둘 다 정상이라 '다른 해시가 올라갔다'를 잡을 수 없다."""
+    one = hash_password("같은암호", iterations=FAST)
+    other = hash_password("같은암호", iterations=FAST)
+    assert describe_encoded(one) == describe_encoded(other)
+    assert fingerprint(one) != fingerprint(other)
+
+
+def test_fingerprint_ignores_surrounding_whitespace():
+    encoded = hash_password("아무암호", iterations=FAST)
+    assert fingerprint(f"  {encoded}\n") == fingerprint(encoded)
+
+
+def test_fingerprint_does_not_contain_the_hash():
+    encoded = hash_password("아무암호", iterations=FAST)
+    assert encoded.split("$")[3] not in fingerprint(encoded)
 
 
 def test_describe_never_leaks_the_stored_value():

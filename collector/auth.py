@@ -69,6 +69,18 @@ def describe_encoded(encoded: str) -> str:
     return " ".join(detail)
 
 
+def fingerprint(encoded: str) -> str:
+    """저장된 해시가 '어느 것인지'만 식별하는 짧은 지문.
+
+    해시를 한 번 더 해싱한 값의 앞 8자라 되돌릴 수 없다. 이 PC에서 만든 값과
+    서버에 실제로 들어간 값이 같은 것인지 대조하는 용도다. 형태만 보는
+    describe_encoded 로는 '정상이지만 다른 해시'를 구분할 수 없다.
+    """
+    if not encoded:
+        return "none"
+    return hashlib.sha256(encoded.strip().encode("utf-8")).hexdigest()[:8]
+
+
 def verify_password(password: str, encoded: str) -> bool:
     """어떤 이유로든 해석할 수 없으면 거부한다.
 
