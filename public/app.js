@@ -299,9 +299,20 @@ function sortLots(lots) {
   });
 }
 
+// classList 는 공백이 든 토큰을 거부한다. '정보 없음'을 그대로 넣으면 예외가 나
+// 그 카드부터 목록이 통째로 그려지지 않는다 — 하필 API가 불안정할 때 터진다.
+const GRADE_CLASS = {
+  '여유': 'calm', '보통': 'ok', '혼잡': 'busy', '만차': 'full', '정보 없음': 'unknown',
+};
+
+function gradeClass(grade) {
+  return GRADE_CLASS[grade] || 'unknown';
+}
+
 function lotCard(lot, shuttle, points) {
+  const g = lot.grade || '정보 없음';
   const card = document.createElement('section');
-  card.className = 'lot';
+  card.className = `lot ${gradeClass(g)}`;
 
   const head = document.createElement('div');
   head.className = 'lot-head';
@@ -309,9 +320,7 @@ function lotCard(lot, shuttle, points) {
   name.className = 'lot-name';
   name.textContent = lot.name === null || lot.name === undefined ? '이름 없음' : lot.name;
   const grade = document.createElement('span');
-  grade.className = 'grade';
-  const g = lot.grade || '정보 없음';
-  grade.classList.add(g);
+  grade.className = `grade ${gradeClass(g)}`;
   grade.textContent = g;
   head.appendChild(name);
   head.appendChild(grade);
@@ -355,13 +364,39 @@ function lotCard(lot, shuttle, points) {
   trend.appendChild(document.createTextNode(info.text));
   card.appendChild(trend);
 
+  // 사용률 막대. 숫자를 읽기 전에 카드 색과 막대 길이만으로 판단이 서야 한다.
+  if (isKnown(lot) && lot.total) {
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    const fill = document.createElement('span');
+    fill.style.width = `${Math.min(100, Math.round(lot.occupied / lot.total * 100))}%`;
+    bar.appendChild(fill);
+    card.appendChild(bar);
+  }
+
   return card;
+}
+
+// 공항을 통틀어 몇 자리가 남았는지. 주차장을 하나씩 훑기 전에 '이 공항이 지금
+// 여유로운가'부터 알 수 있어야 한다.
+function renderSummary(airport) {
+  const el = document.getElementById('summary');
+  const known = (airport ? airport.lots : []).filter(isKnown);
+  if (!known.length) {
+    el.textContent = '';
+    return;
+  }
+  const free = known.reduce((sum, lot) => sum + lot.free, 0);
+  const total = known.reduce((sum, lot) => sum + lot.total, 0);
+  el.textContent = `주차장 ${airport.lots.length}곳 · 빈자리 `
+    + `${free.toLocaleString('ko-KR')}면 / ${total.toLocaleString('ko-KR')}면`;
 }
 
 function renderLots() {
   const main = document.getElementById('lots');
   main.textContent = '';
   const airport = data && data.airports && data.airports[current];
+  renderSummary(airport);
   if (!airport || !Array.isArray(airport.lots) || airport.lots.length === 0) {
     const p = document.createElement('p');
     p.className = 'empty';

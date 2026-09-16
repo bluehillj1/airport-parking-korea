@@ -1,83 +1,112 @@
-/* 이름 상자는 파랑이다. 빨강·주황·초록은 등급(만차·혼잡·여유)이 쓰고 있어서
-   같은 계열을 이름에 쓰면 상태 신호로 잘못 읽힌다. */
+/* 상태는 색으로, 구획은 카드로. 숫자를 읽기 전에 어느 주차장으로 갈지
+   결정이 서야 한다. */
 :root {
-  --bg:#fff; --fg:#111; --muted:#666; --line:#e3e3e3;
-  --chip-bg:#dbeafe; --chip-line:#93c5fd; --chip-fg:#1e40af;
-  --calm-bg:#dcfce7; --calm-fg:#166534;
-  --warn:#c2410c; --good:#15803d;
+  --bg:#f5f6f8; --surface:#fff; --fg:#111; --muted:#6b7280; --line:#e4e4e7;
+  --brand:#1e40af; --warn:#c2410c; --good:#15803d;
+  --track:rgba(0,0,0,.09);
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg:#111; --fg:#f2f2f2; --muted:#999; --line:#2c2c2c;
-    --chip-bg:#1c3454; --chip-line:#2f5b96; --chip-fg:#bfdbfe;
-    --calm-bg:#14311f; --calm-fg:#86efac;
-    --warn:#fb923c; --good:#4ade80;
+    --bg:#0d0d0f; --surface:#161618; --fg:#f2f2f2; --muted:#9ca3af; --line:#2a2a2e;
+    --brand:#93c5fd; --warn:#fb923c; --good:#4ade80;
+    --track:rgba(255,255,255,.13);
   }
 }
+
 * { box-sizing: border-box; }
+[hidden] { display:none !important; }
 body {
   margin:0; background:var(--bg); color:var(--fg);
   font-family: system-ui, -apple-system, "Malgun Gothic", sans-serif;
   padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
 }
-[hidden] { display:none !important; }
 
+/* ---------------------------------------------------------------- 로그인 */
 #login { max-width:320px; margin:18vh auto 0; padding:0 24px; }
 #login h1 { font-size:20px; margin:0 0 24px; }
 #login label { display:block; font-size:13px; color:var(--muted); margin-bottom:6px; }
 #login input, #login button {
-  width:100%; padding:12px; font-size:16px; border-radius:8px;
+  width:100%; padding:12px; font-size:16px; border-radius:10px;
   border:1px solid var(--line);
 }
-#login input { background:transparent; color:var(--fg); }
-#login button { margin-top:12px; background:var(--fg); color:var(--bg); border-color:var(--fg); }
+#login input { background:var(--surface); color:var(--fg); }
+/* 글자색을 흰색으로 고정하면 다크모드에서 밝은 파랑 위에 흰 글씨가 되어 읽히지
+   않는다. 배경색을 따라가게 두면 명암이 항상 뒤집힌다. */
+#login button { margin-top:12px; background:var(--brand); color:var(--surface); border-color:var(--brand); font-weight:600; }
 #reveal-row { display:flex; align-items:center; gap:6px; margin:8px 0 0; font-size:13px; }
 #reveal-row input { width:auto; padding:0; }
 #reveal-row label { display:inline; margin:0; color:var(--muted); }
 #pw-count { margin-left:auto; color:var(--muted); font-variant-numeric:tabular-nums; }
 #login-msg { font-size:13px; color:var(--warn); min-height:1.2em; }
 
-header { padding:12px 16px 8px; border-bottom:1px solid var(--line); }
-#airports { display:flex; gap:8px; }
-#airports button {
-  flex:1; padding:10px; font-size:15px; border:1px solid var(--line);
-  border-radius:8px; background:transparent; color:var(--fg);
+/* ---------------------------------------------------------------- 머리 */
+header {
+  padding:12px 16px 14px; background:var(--surface);
+  border-bottom:1px solid var(--line);
+  position:sticky; top:0; z-index:1;
 }
-#airports button[aria-pressed="true"] { background:var(--fg); color:var(--bg); }
-#freshness { margin:8px 0 0; font-size:13px; color:var(--muted); }
+#airports { display:flex; gap:6px; }
+#airports button {
+  flex:1; padding:9px 4px; font-size:15px; border:1px solid var(--line);
+  border-radius:99px; background:transparent; color:var(--muted);
+}
+#airports button[aria-pressed="true"] {
+  background:var(--brand); border-color:var(--brand); color:var(--surface); font-weight:600;
+}
+#summary { margin:12px 0 0; font-size:14px; font-weight:600; }
+#freshness { margin:3px 0 0; font-size:12px; color:var(--muted); }
 #freshness.stale { color:var(--warn); font-weight:600; }
 
-.terminal { margin:16px 16px 4px; font-size:13px; color:var(--muted); }
-.lot { padding:16px; border-bottom:1px solid var(--line); }
-
-/* 주차장명이 맨 글자로 있으면 카드 경계가 흐려 어디부터 어디까지가 한 주차장인지
-   읽히지 않는다. 이름을 상자에 넣어 오른쪽 등급 배지와 짝을 이루게 한다. */
-.lot-head { display:flex; justify-content:space-between; align-items:center; gap:8px; }
-.lot-name {
-  font-size:16px; font-weight:600;
-  padding:5px 10px; border-radius:7px;
-  background:var(--chip-bg); border:1px solid var(--chip-line);
-  color:var(--chip-fg);
+/* ---------------------------------------------------------------- 목록 */
+main { padding:14px 16px 28px; display:flex; flex-direction:column; gap:10px; }
+.terminal {
+  margin:8px 0 0; font-size:12px; font-weight:700;
+  color:var(--muted); letter-spacing:.04em;
 }
-.grade { font-size:13px; padding:4px 10px; border-radius:99px; border:1px solid var(--line); white-space:nowrap; }
-/* 4단계가 한눈에 읽혀야 한다 — 여유(초록) 보통(회색) 혼잡(주황) 만차(빨강).
-   여유는 옅게 둔다. 진하면 경고색과 주목도를 다투게 된다. */
-.grade.여유 { background:var(--calm-bg); color:var(--calm-fg); border-color:var(--calm-bg); }
-.grade.혼잡 { background:#f59e0b; color:#111; border-color:#f59e0b; }
-.grade.만차 { background:#dc2626; color:#fff; border-color:#dc2626; }
-.free { font-size:28px; font-weight:700; margin:6px 0 2px; }
-/* 빈 면수가 헤드라인이지만, 전체 면수는 규모를 가늠하는 값이라 읽히지 않으면
-   병기한 의미가 없다. 본문(16px)에 가깝게 둔다. */
-.free small { font-size:15px; font-weight:400; color:var(--muted); margin-left:8px; }
-.meta { font-size:13px; color:var(--muted); }
+.terminal:first-child { margin-top:0; }
+.empty { padding:32px 0; color:var(--muted); text-align:center; }
+
+/* --accent 하나가 등급 점·글자·막대 색을 함께 몬다. 카드마다 색을 세 번
+   지정하면 언젠가 하나만 바뀌어 서로 어긋난다. */
+.lot {
+  --accent:var(--muted);
+  padding:14px 16px; border-radius:14px;
+  background:var(--surface); border:1px solid var(--line);
+}
+.lot.calm    { --accent:#16a34a; background:#f0fdf4; border-color:#bbf7d0; }
+.lot.busy    { --accent:#ea580c; background:#fff7ed; border-color:#fed7aa; }
+.lot.full    { --accent:#dc2626; background:#fef2f2; border-color:#fecaca; }
+.lot.unknown { --accent:#a1a1aa; background:var(--surface); border-style:dashed; }
+@media (prefers-color-scheme: dark) {
+  .lot.calm    { --accent:#4ade80; background:#0f2418; border-color:#1f4d31; }
+  .lot.busy    { --accent:#fb923c; background:#2a1c0e; border-color:#59371a; }
+  .lot.full    { --accent:#f87171; background:#2a1315; border-color:#5a2327; }
+  .lot.unknown { --accent:#71717a; }
+}
+
+.lot-head { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+.lot-name { font-size:16px; font-weight:600; }
+.grade {
+  display:inline-flex; align-items:center; gap:5px;
+  font-size:13px; font-weight:700; color:var(--accent); white-space:nowrap;
+}
+.grade::before {
+  content:''; width:8px; height:8px; border-radius:50%;
+  background:currentColor; flex:none;
+}
+
+/* 퍼센트가 아니라 빈 면수가 헤드라인이다. 99%와 91%는 비슷해 보이지만
+   17면과 151면이다. */
+.free { font-size:30px; font-weight:700; margin:10px 0 0; letter-spacing:-.5px; }
+.free small { font-size:15px; font-weight:400; color:var(--muted); margin-left:8px; letter-spacing:0; }
+.meta { margin:4px 0 0; font-size:13px; color:var(--muted); }
 
 /* 차오르는 중인지 빠지는 중인지가 이 앱의 결론이다. 회색 잔글씨로 두면
    읽히지 않으므로 방향을 색과 굵기로 먼저 보이게 한다. */
-.trend {
-  display:flex; align-items:center; gap:6px;
-  margin:6px 0 0; font-size:14px; color:var(--muted);
-}
+.trend { display:flex; align-items:center; gap:6px; margin:6px 0 0; font-size:14px; color:var(--muted); }
 .trend.up { color:var(--warn); font-weight:600; }
 .trend.down { color:var(--good); font-weight:600; }
 .spark { font-family:ui-monospace, monospace; font-size:16px; letter-spacing:-1px; }
-.empty { padding:32px 16px; color:var(--muted); text-align:center; }
+
+.bar { height:6px; margin-top:12px; border-radius:99px; background:var(--track); overflow:hidden; }
+.bar > span { display:block; height:100%; border-radius:99px; background:var(--accent); }
