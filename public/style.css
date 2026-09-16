@@ -1,6 +1,6 @@
-:root { --bg:#fff; --fg:#111; --muted:#666; --line:#e3e3e3; --warn:#c2410c; }
+:root { --bg:#fff; --fg:#111; --muted:#666; --line:#e3e3e3; --warn:#c2410c; --good:#15803d; }
 @media (prefers-color-scheme: dark) {
-  :root { --bg:#111; --fg:#f2f2f2; --muted:#999; --line:#2c2c2c; --warn:#fb923c; }
+  :root { --bg:#111; --fg:#f2f2f2; --muted:#999; --line:#2c2c2c; --warn:#fb923c; --good:#4ade80; }
 }
 * { box-sizing: border-box; }
 body {
@@ -43,7 +43,16 @@ header { padding:12px 16px 8px; border-bottom:1px solid var(--line); }
 .grade.만차 { background:#dc2626; color:#fff; border-color:#dc2626; }
 .grade.혼잡 { background:#f59e0b; color:#111; border-color:#f59e0b; }
 .free { font-size:28px; font-weight:700; margin:6px 0 2px; }
-.free small { font-size:14px; font-weight:400; color:var(--muted); margin-left:6px; }
+.free small { font-size:13px; font-weight:400; color:var(--muted); margin-left:6px; }
 .meta { font-size:13px; color:var(--muted); }
-.spark { font-family:ui-monospace, monospace; letter-spacing:-1px; }
+
+/* 차오르는 중인지 빠지는 중인지가 이 앱의 결론이다. 회색 잔글씨로 두면
+   읽히지 않으므로 방향을 색과 굵기로 먼저 보이게 한다. */
+.trend {
+  display:flex; align-items:center; gap:6px;
+  margin:6px 0 0; font-size:14px; color:var(--muted);
+}
+.trend.up { color:var(--warn); font-weight:600; }
+.trend.down { color:var(--good); font-weight:600; }
+.spark { font-family:ui-monospace, monospace; font-size:16px; letter-spacing:-1px; }
 .empty { padding:32px 16px; color:var(--muted); text-align:center; }

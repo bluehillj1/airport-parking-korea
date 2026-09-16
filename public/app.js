@@ -27,6 +27,20 @@ function minutesSince(sourceTs) {
   return t === null ? null : Math.floor((Date.now() - t) / 60000);
 }
 
+// 원천 문자열에서 시:분을 그대로 떼어낸다. Date로 바꿔 시각을 뽑으면 휴대폰
+// 시간대 설정에 따라 다른 시각이 찍힌다 — 국내 공항이므로 한국시간이 맞다.
+// 표기는 24시간제가 아니라 사람이 말하는 방식으로 한다. "18:20"보다 "오후 6:20".
+function sourceClock(sourceTs) {
+  const matched = /\s(\d{1,2}):(\d{2})/.exec(String(sourceTs || ''));
+  if (!matched) return null;
+  const hour = Number(matched[1]);
+  if (!Number.isInteger(hour) || hour < 0 || hour > 23) return null;
+  const meridiem = hour < 12 ? '오전' : '오후';
+  // 0시는 오전 12시, 12시는 오후 12시다.
+  const twelve = hour % 12 === 0 ? 12 : hour % 12;
+  return `${meridiem} ${twelve}:${matched[2]}`;
+}
+
 function show(id, visible) {
   document.getElementById(id).hidden = !visible;
 }
@@ -174,14 +188,16 @@ function renderFreshness(error) {
     return;
   }
   const mins = data ? minutesSince(data.source_ts) : null;
-  if (mins === null) {
+  const time = sourceClock(data && data.source_ts);
+  if (mins === null || time === null) {
     el.textContent = '정보를 불러오지 못했습니다';
     el.classList.add('stale');
     return;
   }
-  let text = mins <= 1 ? '방금 전 정보' : `${mins}분 전 정보`;
+  let text = `${time} 기준`;
   const stale = mins >= STALE_MINUTES;
-  if (stale) text += ' — 갱신이 멈췄을 수 있습니다';
+  // 평소에는 시각만 보여주고, 멈췄을 때만 얼마나 오래됐는지 말한다.
+  if (stale) text += ` — ${mins}분 지남, 갱신이 멈췄을 수 있습니다`;
   el.textContent = text;
   el.classList.toggle('stale', stale);
 }
@@ -247,16 +263,19 @@ function accessLabel(lot, shuttle) {
   return '도보권';
 }
 
-function trendLabel(lot, points) {
-  if (!isKnown(lot)) return '정보를 받지 못했습니다';
+// 방향은 글자만으로 구분되지 않는다. 차오르는 중인지 빠지는 중인지는 이 앱에서
+// 가장 중요한 한 줄이므로 색과 굵기로 먼저 눈에 들어와야 한다.
+function trendInfo(lot, points) {
+  if (!isKnown(lot)) return { text: '정보를 받지 못했습니다', tone: 'flat' };
   // 원천 카운터가 100%에서 고정되므로 만차 주차장의 증감은 의미가 없다.
-  if (lot.grade === '만차') return '만차 — 입출차 정보 없음';
+  if (lot.grade === '만차') return { text: '만차 — 입출차 정보 없음', tone: 'flat' };
+
   const t = computeTrend(points, lot.total);
-  if (!t) return '잠시 열어두면 변화가 보입니다';
-  if (!t.significant) return '→ 큰 변화 없음';
+  if (!t) return { text: '잠시 열어두면 변화가 보입니다', tone: 'flat' };
+  if (!t.significant) return { text: `${t.span}분간 큰 변화 없음`, tone: 'flat' };
   return t.delta > 0
-    ? `↗ ${t.span}분 +${t.delta}대`
-    : `↘ ${t.span}분 ${t.delta}대`;
+    ? { text: `↗ 채워지는 중 · ${t.span}분 +${t.delta}대`, tone: 'up' }
+    : { text: `↘ 빠지는 중 · ${t.span}분 ${t.delta}대`, tone: 'down' };
 }
 
 // 정보 없음이 맨 뒤, 그 앞이 만차, 그다음 셔틀 전용, 도보권이 우선. 같은 등급
@@ -304,8 +323,13 @@ function lotCard(lot, shuttle, points) {
   free.className = 'free';
   const pct = document.createElement('small');
   if (isKnown(lot)) {
-    free.textContent = `${lot.free}면`;
-    if (lot.total) pct.textContent = `${Math.round((lot.occupied / lot.total) * 100)}% 사용`;
+    free.textContent = `${lot.free.toLocaleString('ko-KR')}면`;
+    if (lot.total) {
+      // 빈 면수만으로는 규모 감이 안 온다. 17면이 남았을 때 정원이 200면인지
+      // 2200면인지에 따라 도착해서 마주할 상황이 전혀 다르다.
+      pct.textContent = `/ ${lot.total.toLocaleString('ko-KR')}면 · `
+        + `${Math.round((lot.occupied / lot.total) * 100)}% 사용`;
+    }
   } else {
     free.textContent = '—';
     pct.textContent = '실시간 정보 없음';
@@ -318,17 +342,17 @@ function lotCard(lot, shuttle, points) {
   meta.textContent = accessLabel(lot, shuttle);
   card.appendChild(meta);
 
+  const info = trendInfo(lot, points);
   const trend = document.createElement('p');
-  trend.className = 'meta';
+  trend.className = `trend ${info.tone}`;
   const spark = lot.grade === '만차' ? '' : sparkline(points, lot.total);
   if (spark) {
     const s = document.createElement('span');
     s.className = 'spark';
     s.textContent = spark;
     trend.appendChild(s);
-    trend.appendChild(document.createTextNode(' '));
   }
-  trend.appendChild(document.createTextNode(trendLabel(lot, points)));
+  trend.appendChild(document.createTextNode(info.text));
   card.appendChild(trend);
 
   return card;
