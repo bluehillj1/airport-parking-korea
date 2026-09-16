@@ -75,12 +75,14 @@ main { padding:14px 16px 28px; display:flex; flex-direction:column; gap:10px; }
 }
 .lot.calm    { --accent:#16a34a; background:#f0fdf4; border-color:#bbf7d0; }
 .lot.busy    { --accent:#ea580c; background:#fff7ed; border-color:#fed7aa; }
-.lot.full    { --accent:#dc2626; background:#fef2f2; border-color:#fecaca; }
+/* 만차 바탕만 한 단계 옅게. 점·글자·막대의 빨강은 그대로 두어 신호는 죽이지
+   않는다 — 옅어진 것은 바탕이지 경고가 아니다. */
+.lot.full    { --accent:#dc2626; background:#fff6f6; border-color:#fbd5d5; }
 .lot.unknown { --accent:#a1a1aa; background:var(--surface); border-style:dashed; }
 @media (prefers-color-scheme: dark) {
   .lot.calm    { --accent:#4ade80; background:#0f2418; border-color:#1f4d31; }
   .lot.busy    { --accent:#fb923c; background:#2a1c0e; border-color:#59371a; }
-  .lot.full    { --accent:#f87171; background:#2a1315; border-color:#5a2327; }
+  .lot.full    { --accent:#f87171; background:#211416; border-color:#4a2023; }
   .lot.unknown { --accent:#71717a; }
 }
 
