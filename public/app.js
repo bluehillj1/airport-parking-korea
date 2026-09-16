@@ -41,12 +41,36 @@ function showLogin(message) {
   document.getElementById('password').focus();
 }
 
-// 비밀번호 칸은 무엇이 들어 있는지 아무도 볼 수 없다. 한/영 상태나 자동완성으로
-// 엉뚱한 값이 들어가 있어도 점 개수만 보이니 원인을 찾을 길이 없다.
-document.getElementById('reveal').addEventListener('change', (event) => {
-  document.getElementById('password').type =
-    event.target.checked ? 'text' : 'password';
+// 비밀번호 칸은 무엇이 들어 있는지 아무도 볼 수 없다. 한/영 상태가 잘못됐든
+// 브라우저가 옛 값을 채웠든 점 개수만 보이니, 원인을 찾을 길이 없이 '암호가
+// 틀렸다'만 반복된다. 보이게 하고, 세고, 비운다.
+const passwordInput = document.getElementById('password');
+const passwordCount = document.getElementById('pw-count');
+let userTypedPassword = false;
+
+function updatePasswordCount() {
+  passwordCount.textContent = `${passwordInput.value.length}자`;
+}
+
+function clearPassword() {
+  passwordInput.value = '';
+  userTypedPassword = false;
+  updatePasswordCount();
+}
+
+passwordInput.addEventListener('input', () => {
+  userTypedPassword = true;
+  updatePasswordCount();
 });
+
+document.getElementById('reveal').addEventListener('change', (event) => {
+  passwordInput.type = event.target.checked ? 'text' : 'password';
+});
+
+// 자동완성은 로드가 끝난 뒤에 일어나기도 한다. 사용자가 이미 치기 시작했다면
+// 건드리지 않는다.
+clearPassword();
+setTimeout(() => { if (!userTypedPassword) clearPassword(); }, 400);
 
 // 전부 "암호가 틀렸다"로 뭉뚱그리면 설정 실수를 영원히 못 찾는다. 틀린 암호와
 // 설정 누락과 미배포는 대응이 서로 다르므로 구분해서 말한다.
@@ -61,7 +85,7 @@ function loginError(status) {
 
 document.getElementById('login').addEventListener('submit', async (event) => {
   event.preventDefault();
-  const input = document.getElementById('password');
+  const input = passwordInput;
   const msg = document.getElementById('login-msg');
   msg.textContent = '확인 중…';
   try {
@@ -71,7 +95,7 @@ document.getElementById('login').addEventListener('submit', async (event) => {
       body: JSON.stringify({ password: input.value }),
     });
     // 암호는 어디에도 남기지 않는다. 세션은 서버가 준 HttpOnly 쿠키에만 있다.
-    input.value = '';
+    clearPassword();
     if (!res.ok) {
       msg.textContent = loginError(res.status);
       return;

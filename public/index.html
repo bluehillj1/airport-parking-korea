@@ -9,14 +9,17 @@
 </head>
 <body>
 
-<form id="login" hidden autocomplete="on">
+<!-- 자동완성을 끈다. 브라우저나 확장프로그램이 채운 값은 비밀번호 칸이라 보이지
+     않아, 남아 있으면 영문 모를 인증 실패로만 나타난다. -->
+<form id="login" hidden autocomplete="off">
   <h1>공항 주차장</h1>
   <label for="password">접속 암호</label>
   <input id="password" name="password" type="password"
-         autocomplete="current-password" required>
+         autocomplete="new-password" required>
   <p id="reveal-row">
     <input id="reveal" type="checkbox">
     <label for="reveal">입력한 암호 보기</label>
+    <span id="pw-count">0자</span>
   </p>
   <button type="submit">확인</button>
   <p id="login-msg" role="status"></p>
